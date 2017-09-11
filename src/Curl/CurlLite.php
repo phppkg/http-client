@@ -6,13 +6,13 @@
  * Time: 18:44
  */
 
-namespace inhere\http;
+namespace Inhere\HttpClient\Curl;
 
 use inhere\library\helpers\UrlHelper;
 
 /**
  * Class CurlLite - a lite curl tool
- * @package inhere\library\http
+ * @package Inhere\HttpClient\Curl
  */
 class CurlLite implements CurlLiteInterface
 {

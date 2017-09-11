@@ -6,11 +6,11 @@
  * Time: 13:14
  */
 
-namespace inhere\http;
+namespace Inhere\HttpClient\Curl;
 
 /**
  * Class CurlLiteInterface
- * @package inhere\library\http
+ * @package Inhere\HttpClient\Curl
  */
 interface CurlLiteInterface
 {

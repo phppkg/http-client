@@ -6,13 +6,13 @@
  * Time: 16:40
  */
 
-namespace inhere\http;
+namespace Inhere\HttpClient\Curl;
 
 use inhere\library\helpers\UrlHelper;
 
 /**
  * Class Curl
- * @package inhere\library\http
+ * @package Inhere\HttpClient\Curl
  *
  * ```
  * $curl = Curl::make([

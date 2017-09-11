@@ -6,11 +6,11 @@
  * Time: 下午9:17
  */
 
-namespace inhere\http;
+namespace Inhere\HttpClient\Curl;
 
 /**
  * Class CurlMulti
- * @package inhere\library\http
+ * @package Inhere\HttpClient\Curl
  */
 class CurlMulti extends CurlLite
 {
