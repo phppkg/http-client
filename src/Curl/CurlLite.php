@@ -8,7 +8,7 @@
 
 namespace Inhere\HttpClient\Curl;
 
-use inhere\library\helpers\UrlHelper;
+use Inhere\Library\Helpers\UrlHelper;
 
 /**
  * Class CurlLite - a lite curl tool
