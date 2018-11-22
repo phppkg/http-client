@@ -26,6 +26,12 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     const SEARCH = 'SEARCH';
 
     /**
+     * @param array $options
+     * @return ClientInterface
+     */
+    public static function create(array $options): ClientInterface;
+
+    /**
      * @return bool
      */
     public static function isAvailable(): bool ;
@@ -33,12 +39,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     /**
      * @return bool
      */
-    public function isOk(): bool ;
-
-    /**
-     * @return bool
-     */
-    public function isFail(): bool ;
+    public function hasError(): bool ;
 
     /**
      * @return string
@@ -103,4 +104,47 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @return self
      */
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = []);
+
+    /**
+     * reset options, request headers, cookies, response data...
+     * @return self
+     */
+    public function reset();
+
+    /**
+     * Reset request data
+     * @return self
+     */
+    public function resetRequest();
+
+    /**
+     * Reset response data
+     * @return self
+     */
+    public function resetResponse();
+
+    /**
+     * set Headers
+     *
+     * [
+     *  'Content-Type' => 'application/json'
+     * ]
+     *
+     * @param array $headers
+     * @return $this
+     */
+    public function setHeaders(array $headers);
+
+    /**
+     * add headers
+     * @param array $headers
+     * @param bool $override $override Override exists
+     * @return mixed
+     */
+    public function addHeaders(array $headers, bool $override = true);
+
+    /**
+     * @return mixed
+     */
+    public function getHeaders(): array ;
 }

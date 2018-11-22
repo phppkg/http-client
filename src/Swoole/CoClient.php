@@ -9,8 +9,7 @@
 namespace PhpComp\Http\Client\Swoole;
 
 use PhpComp\Http\Client\AbstractClient;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use PhpComp\Http\Client\Error\ClientException;
 use Swoole\Coroutine\Http\Client;
 
 /**
@@ -21,47 +20,16 @@ use Swoole\Coroutine\Http\Client;
 class CoClient extends AbstractClient
 {
     /**
-     * Sends a PSR-7 request and returns a PSR-7 response.
-     *
-     * @param RequestInterface $request
-     * @return ResponseInterface
-     * @throws \Psr\Http\Client\ClientExceptionInterface If an error happens while processing the request.
+     * @var \Swoole\Coroutine\Http\Client
      */
-    public function sendRequest(RequestInterface $request): ResponseInterface
-    {
-        // TODO: Implement sendRequest() method.
-    }
+    private $client;
 
     /**
      * @return bool
      */
     public static function isAvailable(): bool
     {
-        // TODO: Implement isAvailable() method.
-    }
-
-    /**
-     * @return bool
-     */
-    public function isOk(): bool
-    {
-        // TODO: Implement isOk() method.
-    }
-
-    /**
-     * @return bool
-     */
-    public function isFail(): bool
-    {
-        // TODO: Implement isFail() method.
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString(): string
-    {
-        // TODO: Implement __toString() method.
+        return \class_exists(Client::class);
     }
 
     /**
@@ -71,10 +39,45 @@ class CoClient extends AbstractClient
      * @param string $method
      * @param array $headers
      * @param array $options
-     * @return self
+     * @return $this
      */
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
     {
-        $cli = new Client('127.0.0.1', 80);
+        // get request url
+        $url = $this->buildUrl($url);
+        $info = \parse_url($url);
+        if ($info === false) {
+            throw new ClientException('invalid request url');
+        }
+
+        $port = empty($info['port']) ? 80 : $info['port'];
+        $this->client = $client = new Client($info['host'], $port);
+        $client->setMethod(\strtoupper($method));
+
+        if ($data) {
+            $client->setData($data);
+        }
+
+        $client->execute($info['path']);
+
+        // check error
+        if ($this->errNo = $client->errCode) {
+            $this->error = \socket_strerror($client->errCode);
+        } else {
+            $this->responseBody = $client->body;
+            $this->responseHeaders = $client->headers;
+            $this->statusCode = $client->statusCode;
+        }
+
+        $client->close();
+        return $this;
+    }
+
+    /**
+     * @return Client
+     */
+    public function getClient(): Client
+    {
+        return $this->client;
     }
 }

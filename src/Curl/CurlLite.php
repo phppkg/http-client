@@ -19,17 +19,6 @@ use Psr\Http\Message\ResponseInterface;
  */
 class CurlLite extends AbstractClient
 {
-
-    /**
-     * @var int
-     */
-    private $errNo;
-
-    /**
-     * @var string
-     */
-    private $error;
-
     /**
      * @var array
      */
@@ -38,24 +27,11 @@ class CurlLite extends AbstractClient
     /**
      * @var string body string, it's from curl_exec()
      */
-    protected $_responseBody = '';
+    // protected $_responseBody = '';
 
 ///////////////////////////////////////////////////////////////////////
 // main
 ///////////////////////////////////////////////////////////////////////
-
-    /**
-     * Sends a PSR-7 request and returns a PSR-7 response.
-     *
-     * @param RequestInterface $request
-     * @return ResponseInterface
-     *
-     * @throws \Psr\Http\Client\ClientExceptionInterface If an error happens while processing the request.
-     */
-    public function sendRequest(RequestInterface $request): ResponseInterface
-    {
-        // TODO: Implement sendRequest() method.
-    }
 
     /**
      * Executes a CURL request with optional retries and exception on failure
@@ -112,30 +88,6 @@ class CurlLite extends AbstractClient
     {
         $this->error = null;
         $this->_responseInfo = [];
-    }
-
-    /**
-     * @return string
-     */
-    public function getBody()
-    {
-        return $this->getResponseBody();
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString(): string
-    {
-        return $this->getResponseBody();
-    }
-
-    /**
-     * @return string
-     */
-    public function getResponseBody()
-    {
-        return $this->_responseBody;
     }
 
     /**

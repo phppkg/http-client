@@ -10,8 +10,6 @@ namespace PhpComp\Http\Client\Curl;
 
 use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientUtil;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Curl
@@ -34,8 +32,12 @@ use Psr\Http\Message\ResponseInterface;
  * $array = $curl->getArrayData();
  * ```
  */
-class Curl extends AbstractClient implements CurlExtraInterface
+class Curl extends AbstractClient implements CurlClientInterface
 {
+    // ssl auth type
+    const SSL_TYPE_CERT = 'cert';
+    const SSL_TYPE_KEY = 'key';
+
     /**
      * Can to retry request
      * @var array
@@ -53,20 +55,6 @@ class Curl extends AbstractClient implements CurlExtraInterface
     /**************************************************************************
      * curl config data.
      *************************************************************************/
-
-    /**
-     * setting headers for curl
-     *
-     * [ 'Content-Type' => 'Content-Type: application/json' ]
-     *
-     * @var array
-     */
-    private $_headers = [];
-
-    /**
-     * @var array
-     */
-    private $_cookies = [];
 
     /**
      * setting options for curl
@@ -103,43 +91,11 @@ class Curl extends AbstractClient implements CurlExtraInterface
      *************************************************************************/
 
     /**
-     * @var int
-     */
-    private $errNo;
-
-    /**
-     * @var string
-     */
-    private $error;
-
-    /**
-     * The curl exec response. contains headers and body
+     * The curl exec response data string. contains headers and body
      * @var string
      */
     private $_response;
     private $_responseParsed = false;
-
-    /**
-     * @var string body string, it's parsed from $_response
-     */
-    private $_responseBody = '';
-
-    /**
-     * @var string[] headers data, it's parsed from $_response
-     */
-    private $_responseHeaders = [];
-
-    /**
-     * The curl exec result mete info.
-     * @var array
-     */
-    private $_responseMeta = [
-        // http status code
-        'status' => 200,
-        'errno' => 0,
-        'error' => '',
-        'info' => '',
-    ];
 
     /**
      * save request and response info, data from curl_getinfo()
@@ -174,14 +130,6 @@ class Curl extends AbstractClient implements CurlExtraInterface
     public static function isAvailable(): bool
     {
         return \extension_loaded('curl');
-    }
-
-    /**
-     * __destruct
-     */
-    public function __destruct()
-    {
-        $this->reset();
     }
 
     /**
@@ -234,21 +182,23 @@ class Curl extends AbstractClient implements CurlExtraInterface
      * File download and save
      * @param string $url
      * @param string $saveAs
-     * @return self
+     * @return bool
      * @throws \Exception
      */
-    public function download(string $url, string $saveAs)
+    public function download(string $url, string $saveAs): bool
     {
         if (($fp = \fopen($saveAs, 'wb')) === false) {
             throw new \RuntimeException('Failed to save the content', __LINE__);
         }
 
-        $data = $this->request($url);
+        $data = $this->request($url)->getResponseBody();
+
+        if ($this->hasError()) {
+            return false;
+        }
 
         \fwrite($fp, $data);
-        \fclose($fp);
-
-        return $this;
+        return \fclose($fp);
     }
 
     /**
@@ -274,7 +224,7 @@ class Curl extends AbstractClient implements CurlExtraInterface
             $suffix = '.jpg';
             $name = $rename ?: $last;
         } else {
-            $info = \pathinfo($real, PATHINFO_EXTENSION | PATHINFO_FILENAME);
+            $info = \pathinfo($real, \PATHINFO_EXTENSION | \PATHINFO_FILENAME);
             $suffix = $info['extension'] ?: '.jpg';
             $name = $rename ?: $info['filename'];
         }
@@ -285,46 +235,11 @@ class Curl extends AbstractClient implements CurlExtraInterface
         }
 
         // set Referrer
-        $this->setReferrer('http://www.baidu.com');
+        // $this->setReferrer('http://www.baidu.com');
         $imgData = $this->request($imgUrl)->getResponseBody();
 
         \file_put_contents($imgFile, $imgData);
-
         return $imgFile;
-    }
-
-    /**
-     * Sends a PSR-7 request and returns a PSR-7 response.
-     *
-     * @param RequestInterface $request
-     * @return ResponseInterface
-     *
-     * @throws \Psr\Http\Client\ClientExceptionInterface If an error happens while processing the request.
-     */
-    public function sendRequest(RequestInterface $request): ResponseInterface
-    {
-        foreach ($request->getHeaders() as $name => $values) {
-            $this->setHeader($name, \implode(', ', $values));
-        }
-
-        // send request
-        $this->request($request->getRequestTarget(), $request->getBody(), $request->getMethod());
-
-        // create response instance.
-        $psr7res = $this->createPsr7Response();
-
-        // write body data
-        $psr7res->getBody()->write($this->getResponseBody());
-
-        // with status
-        $psr7res = $psr7res->withStatus($this->getHttpCode());
-
-        // add headers
-        foreach ($this->getResponseHeaders() as $name => $value) {
-            $psr7res = $psr7res->withHeader($name, $value);
-        }
-
-        return $psr7res;
     }
 
     /**
@@ -398,11 +313,8 @@ class Curl extends AbstractClient implements CurlExtraInterface
             break;
         }
 
-        // save request and response info
-        if ($this->options['saveInfo']) {
-            $this->_responseInfo = \curl_getinfo($ch);
-        }
-
+        $this->_responseInfo = \curl_getinfo($ch);
+        $this->statusCode = (int)$this->_responseInfo['http_code'];
         $this->_response = $response;
 
         // close resource
@@ -440,13 +352,13 @@ class Curl extends AbstractClient implements CurlExtraInterface
         $this->_curlOptions = ClientUtil::mergeArray($this->_curlOptions, $opts);
 
         // append http headers to options
-        if ($this->_headers) {
+        if ($this->headers) {
             $options[\CURLOPT_HTTPHEADER] = $this->formatHeaders();
         }
 
         // append http cookies to options
-        if ($this->_cookies) {
-            $options[\CURLOPT_COOKIE] = \http_build_query($this->_cookies, '', '; ');
+        if ($this->cookies) {
+            $options[\CURLOPT_COOKIE] = \http_build_query($this->cookies, '', '; ');
         }
 
         \curl_setopt_array($ch, $this->_curlOptions);
@@ -461,7 +373,7 @@ class Curl extends AbstractClient implements CurlExtraInterface
 
         // if no return headers data
         if (false === $this->getOption(\CURLOPT_HEADER, false)) {
-            $this->_responseBody = $response;
+            $this->responseBody = $response;
             $this->_responseParsed = true;
             return true;
         }
@@ -480,80 +392,30 @@ class Curl extends AbstractClient implements CurlExtraInterface
         }
 
         # Remove all headers from the response body
-        $this->_responseBody = \str_replace($headers_string, '', $response);
+        $this->responseBody = \str_replace($headers_string, '', $response);
 
         # Extract the version and status from the first header
         $versionAndStatus = \array_shift($headers);
 
         \preg_match_all('#HTTP/(\d\.\d)\s((\d\d\d)\s((.*?)(?=HTTP)|.*))#', $versionAndStatus, $matches);
 
-        $this->_responseHeaders['Http-Version'] = \array_pop($matches[1]);
-        $this->_responseHeaders['Status-Code'] = \array_pop($matches[3]);
-        $this->_responseHeaders['Status'] = \array_pop($matches[2]);
+        $this->responseHeaders['Http-Version'] = \array_pop($matches[1]);
+        $this->responseHeaders['Status-Code'] = \array_pop($matches[3]);
+        $this->responseHeaders['Status'] = \array_pop($matches[2]);
 
         # Convert headers into an associative array
         foreach ($headers as $header) {
             \preg_match('#(.*?)\:\s(.*)#', $header, $matches);
-            $this->_responseHeaders[$matches[1]] = $matches[2];
+            $this->responseHeaders[$matches[1]] = $matches[2];
         }
 
         $this->_responseParsed = true;
         return true;
     }
 
-    /**
-     * @param string $url
-     * @param mixed $data
-     * @return string
-     */
-    protected function buildUrl(string $url, $data = null)
-    {
-        $url = \trim($url);
-
-        // is a url part.
-        if ($this->baseUrl && !ClientUtil::isFullURL($url)) {
-            $url = $this->baseUrl . $url;
-        }
-
-        // check again
-        if (!ClientUtil::isFullURL($url)) {
-            throw new \RuntimeException("The request url is not full, URL $url");
-        }
-
-        if ($data) {
-            return ClientUtil::buildURL($url, $data);
-        }
-
-        return $url;
-    }
-
 ///////////////////////////////////////////////////////////////////////
 //   response data
 ///////////////////////////////////////////////////////////////////////
-
-    /**
-     * @return bool
-     */
-    public function isOk(): bool
-    {
-        return !$this->error;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isFail(): bool
-    {
-        return (bool)$this->error;
-    }
-
-    /**
-     * @return int
-     */
-    public function getHttpCode(): int
-    {
-        return $this->_responseInfo['http_code'] ?? 200;
-    }
 
     /**
      * @return int
@@ -580,43 +442,13 @@ class Curl extends AbstractClient implements CurlExtraInterface
     }
 
     /**
-     * @param null|string $key
-     * @return array|mixed|null
-     */
-    public function getMeta($key = null)
-    {
-        return $this->getResponseMeta($key);
-    }
-
-    /**
-     * @param string|null $key
-     * @return array|mixed|null
-     */
-    public function getResponseMeta(string $key = null)
-    {
-        if ($key) {
-            return $this->_responseMeta[$key] ?? null;
-        }
-
-        return $this->_responseMeta;
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString(): string
-    {
-        return $this->getResponseBody();
-    }
-
-    /**
      * @return string
      */
     public function getResponseBody()
     {
         $this->parseResponse();
 
-        return $this->_responseBody;
+        return $this->responseBody;
     }
 
     /**
@@ -636,7 +468,7 @@ class Curl extends AbstractClient implements CurlExtraInterface
             return [];
         }
 
-        $data = \json_decode($this->_responseBody, true);
+        $data = \json_decode($this->responseBody, true);
         if (\json_last_error() > 0) {
             return false;
         }
@@ -653,7 +485,7 @@ class Curl extends AbstractClient implements CurlExtraInterface
             return false;
         }
 
-        $data = \json_decode($this->_responseBody);
+        $data = \json_decode($this->responseBody);
         if (\json_last_error() > 0) {
             return false;
         }
@@ -662,105 +494,12 @@ class Curl extends AbstractClient implements CurlExtraInterface
     }
 
     /**
-     * @return array
-     */
-    public function getResponseHeaders()
-    {
-        $this->parseResponse();
-
-        return $this->_responseHeaders;
-    }
-
-    /**
-     * @param string $name
-     * @param null $default
-     * @return string
-     */
-    public function getResponseHeader($name, $default = null)
-    {
-        $this->parseResponse();
-
-        return $this->_responseHeaders[$name] ?? $default;
-    }
-
-    /**
-     * @return int
-     */
-    public function getErrNo(): int
-    {
-        return $this->errNo;
-    }
-
-    /**
-     * @return string
-     */
-    public function getError(): string
-    {
-        return $this->error;
-    }
-
-    /**
-     * Was an 'info' header returned.
-     */
-    public function isInfo(): bool
-    {
-        return $this->_responseMeta['status'] >= 100 && $this->_responseMeta['status'] < 200;
-    }
-
-    /**
-     * Was an 'OK' response returned.
-     */
-    public function isSuccess(): bool
-    {
-        return $this->_responseMeta['status'] >= 200 && $this->_responseMeta['status'] < 300;
-    }
-
-    /**
-     * Was a 'redirect' returned.
-     */
-    public function isRedirect(): bool
-    {
-        return $this->_responseMeta['status'] >= 300 && $this->_responseMeta['status'] < 400;
-    }
-
-    /**
-     * Was an 'error' returned (client error or server error).
-     */
-    public function isError()
-    {
-        return $this->_responseMeta['status'] >= 400 && $this->_responseMeta['status'] < 600;
-    }
-
-///////////////////////////////////////////////////////////////////////
-//   reset data/unset attribute
-///////////////////////////////////////////////////////////////////////
-
-    /**
-     * @return $this
-     */
-    public function resetHeaders()
-    {
-        $this->_headers = [];
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function resetCookies()
-    {
-        $this->_cookies = [];
-
-        return $this;
-    }
-
-    /**
      * @return $this
      */
     public function resetOptions()
     {
         $this->_curlOptions = [];
+        parent::resetOptions();
 
         return $this;
     }
@@ -770,17 +509,10 @@ class Curl extends AbstractClient implements CurlExtraInterface
      */
     public function resetResponse()
     {
-        $this->_response = $this->_responseBody = null;
+        $this->_response = '';
         $this->_responseParsed = false;
-        $this->_responseInfo = $this->_responseHeaders = [];
-        $this->_responseMeta = [
-            // http status code
-            'status' => 200,
-            'errno' => 0,
-            'error' => '',
-            'info' => '',
-        ];
 
+        parent::resetResponse();
         return $this;
     }
 
@@ -790,148 +522,10 @@ class Curl extends AbstractClient implements CurlExtraInterface
      */
     public function reset()
     {
-        $this->_headers = $this->_curlOptions = $this->_cookies = [];
+        $this->_curlOptions = [];
+        $this->resetRequest();
 
         return $this->resetResponse();
-    }
-
-///////////////////////////////////////////////////////////////////////
-//   request cookies
-///////////////////////////////////////////////////////////////////////
-
-    /**
-     * Set contents of HTTP Cookie header.
-     * @param string $key The name of the cookie
-     * @param string $value The value for the provided cookie name
-     * @return $this
-     */
-    public function setCookie($key, $value)
-    {
-        $this->_cookies[$key] = $value;
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getCookies()
-    {
-        return $this->_cookies;
-    }
-
-    /**************************************************************************
-     * request headers
-     *************************************************************************/
-
-    /**
-     * @return $this
-     */
-    public function byJson()
-    {
-        $this->setHeader('Content-Type', 'application/json; charset=utf-8');
-
-        return $this;
-    }
-
-    /**
-     * @return Curl
-     */
-    public function byXhr()
-    {
-        return $this->byAjax();
-    }
-
-    /**
-     * @return $this
-     */
-    public function byAjax()
-    {
-        $this->setHeader('X-Requested-With', 'XMLHttpRequest');
-
-        return $this;
-    }
-
-    /**
-     * get Headers
-     * @return array
-     */
-    public function getHeaders(): array
-    {
-        return $this->_headers;
-    }
-
-    /**
-     * @return array
-     */
-    public function formatHeaders(): array
-    {
-        $formatted = [];
-        foreach ($this->_headers as $name => $value) {
-            $name = \ucwords($name);
-            $formatted[] = "$name: $value";
-        }
-
-        return $formatted;
-    }
-
-    /**
-     * set Headers
-     * @inheritdoc
-     */
-    public function setHeaders(array $headers)
-    {
-        $this->_headers = []; // clear old.
-
-        foreach ($headers as $name => $value) {
-            $this->setHeader($name, $value, true);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param array $headers
-     * @param bool $override
-     * @return $this
-     */
-    public function addHeaders(array $headers, bool $override = true)
-    {
-        foreach ($headers as $name => $value) {
-            $this->setHeader($name, $value, $override);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string $name
-     * @param string $value
-     * @param bool $override
-     * @return $this
-     */
-    public function setHeader(string $name, string $value, bool $override = false)
-    {
-        if ($override || !isset($this->_headers[$name])) {
-            $this->_headers[$name] = \ucwords($name) . ": $value";
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|array $name
-     * @return $this
-     */
-    public function delHeader(string $name)
-    {
-        foreach ((array)$name as $item) {
-            if (isset($this->_headers[$item])) {
-                unset($this->_headers[$item]);
-            }
-        }
-
-        return $this;
     }
 
     /**************************************************************************
@@ -944,8 +538,7 @@ class Curl extends AbstractClient implements CurlExtraInterface
      */
     public function setUserAgent(string $userAgent)
     {
-        $this->_curlOptions[CURLOPT_USERAGENT] = $userAgent;
-
+        $this->_curlOptions[\CURLOPT_USERAGENT] = $userAgent;
         return $this;
     }
 
@@ -1025,7 +618,6 @@ class Curl extends AbstractClient implements CurlExtraInterface
     {
         $this->_curlOptions[\CURLOPT_SSL_VERIFYPEER] = false;
         $this->_curlOptions[\CURLOPT_SSL_VERIFYHOST] = false;
-
         return $this;
     }
 
@@ -1035,7 +627,6 @@ class Curl extends AbstractClient implements CurlExtraInterface
     public function setCurlOptions(array $options)
     {
         $this->_curlOptions = array_merge($this->_curlOptions, $options);
-
         return $this;
     }
 
@@ -1047,7 +638,6 @@ class Curl extends AbstractClient implements CurlExtraInterface
     public function setCurlOption($name, $value)
     {
         $this->_curlOptions[$name] = $value;
-
         return $this;
     }
 
@@ -1064,7 +654,7 @@ class Curl extends AbstractClient implements CurlExtraInterface
      * @param bool $default
      * @return mixed
      */
-    public function getOption($name, $default = null)
+    public function getCurlOption($name, $default = null)
     {
         return $this->_curlOptions[$name] ?? $default;
     }

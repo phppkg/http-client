@@ -23,7 +23,7 @@
   },
   "autoload": {
     "psr-4": {
-      "PhpComp\\HttpClient\\": "src/"
+      "PhpComp\\Http\\Client\\": "src/"
     }
   },
   "suggest": {
