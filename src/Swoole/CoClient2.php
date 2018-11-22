@@ -8,26 +8,35 @@
 
 namespace PhpComp\Http\Client\Swoole;
 
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
+use PhpComp\Http\Client\AbstractClient;
+use Swoole\Coroutine\Http2\Client;
 
 /**
  * Class CoClient2 - http2 client
  * @package PhpComp\Http\Client\Swoole
  * @link https://wiki.swoole.com/wiki/page/856.html
  */
-class CoClient2 implements ClientInterface
+class CoClient2 extends AbstractClient
 {
     /**
-     * Sends a PSR-7 request and returns a PSR-7 response.
-     *
-     * @param RequestInterface $request
-     * @return ResponseInterface
-     * @throws \Psr\Http\Client\ClientExceptionInterface If an error happens while processing the request.
+     * @return bool
      */
-    public function sendRequest(RequestInterface $request): ResponseInterface
+    public static function isAvailable(): bool
     {
-        // TODO: Implement sendRequest() method.
+        return \class_exists(Client::class);
+    }
+
+    /**
+     * Send request to remote URL
+     * @param $url
+     * @param array $data
+     * @param string $method
+     * @param array $headers
+     * @param array $options
+     * @return self
+     */
+    public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
+    {
+        return $this;
     }
 }

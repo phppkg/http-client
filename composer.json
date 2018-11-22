@@ -28,5 +28,11 @@
   },
   "suggest": {
     "php-comp/http-message": "Very lightweight PSR-7 implements http message component"
+  },
+  "repositories": {
+    "packagist": {
+      "type": "composer",
+      "url": "https://packagist.phpcomposer.com"
+    }
   }
 }

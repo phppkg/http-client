@@ -52,8 +52,8 @@ class ClientUtil
      */
     public static function buildURL(string $url, $data = null)
     {
-        if ($data && ($param = \http_build_query($data))) {
-            $url .= (strpos($url, '?') ? '&' : '?') . $param;
+        if ($data && ($query = \http_build_query($data))) {
+            $url .= (\strpos($url, '?') ? '&' : '?') . $query;
         }
 
         return $url;

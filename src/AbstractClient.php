@@ -35,7 +35,13 @@ abstract class AbstractClient implements ClientInterface
     ];
 
     /**
-     * @var array Default options
+     * for create psr7 ResponseInterface instance
+     * @var \Closure function(): ResponseInterface {..}
+     */
+    protected $responseCreator;
+
+    /**
+     * @var array Default options data
      */
     protected $defaultOptions = [
         // open debug mode
@@ -44,31 +50,33 @@ abstract class AbstractClient implements ClientInterface
         'retry' => 3,
         'method' => 'GET', // 'POST'
         'baseUrl' => '',
-        'timeout' => 10,
+        'timeout' => 5,
         // enable SSL verify
         'sslVerify' => false,
-
+        // request headers
         'headers' => [
+            // name => value
+        ],
+        'cookies' => [
             // name => value
         ],
         'proxy' => [
             // 'host' => '',
             // 'port' => '',
         ],
-        // send data
+        'auth' => [
+            // 'user' => '',
+            // 'pwd' => '',
+        ],
+        // send data(todo)
         'data' => [],
         'json' => [],
         // 'curlOptions' => [],
     ];
 
     /**
-     * for create psr7 ResponseInterface instance
-     * @var \Closure function(): ResponseInterface {..}
-     */
-    protected $responseCreator;
-
-    /**
      * global options data. init from $defaultOptions
+     * @see AbstractClient::$defaultOptions
      * @var array
      */
     protected $options;
@@ -330,6 +338,17 @@ abstract class AbstractClient implements ClientInterface
      *************************************************************************/
 
     /**
+     * accept Gzip
+     */
+    public function acceptGzip()
+    {
+        return $this->addHeaders([
+            'Expect' => '', // 首次速度非常慢 解决
+            'Accept-Encoding' => 'gzip, deflate', // gzip
+        ]);
+    }
+
+    /**
      * @return $this
      */
     public function byJson()
@@ -455,7 +474,7 @@ abstract class AbstractClient implements ClientInterface
 
         // is a url part.
         if ($this->baseUrl && !ClientUtil::isFullURL($url)) {
-            $url = $this->baseUrl . $url;
+            $url = $this->baseUrl . '/' . \ltrim($url, '/');
         }
 
         // check again

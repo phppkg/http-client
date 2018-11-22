@@ -44,7 +44,10 @@ class CurlMulti // extends CurlLite
         'uri' => '',
         'method' => 'GET', // 'POST'
         'retry' => 3,
-        'timeout' => 10,
+        'timeout' => 5,
+
+        // enable SSL verify
+        'sslVerify' => false,
 
         'headers' => [
             // name => value
@@ -58,6 +61,25 @@ class CurlMulti // extends CurlLite
     ];
 
     /**
+     * @var array
+     */
+    private $options;
+
+    public static function create(array $options = [])
+    {
+        return new static($options);
+    }
+
+    /**
+     * CurlMulti constructor.
+     * @param array $options
+     */
+    public function __construct(array $options = [])
+    {
+        $this->options = \array_merge($this->defaultOptions, $options);
+    }
+
+    /**
      * make Multi
      * @param  array $data
      * @return self
@@ -67,7 +89,7 @@ class CurlMulti // extends CurlLite
         $this->mh = \curl_multi_init();
 
         foreach ($data as $key => $opts) {
-            $opts = ClientUtil::mergeArray($this->defaultOptions, $opts);
+            $opts = ClientUtil::mergeArray($this->options, $opts);
             $this->chMap[$key] = $this->createResource($opts['url'], [], [], $opts);
 
             \curl_multi_add_handle($this->mh, $this->chMap[$key]);
@@ -86,6 +108,7 @@ class CurlMulti // extends CurlLite
      */
     public function append(string $url, $data = null, array $headers = [], array $options = [])
     {
+        $options = \array_merge($this->options, $options);
         $this->chMap[] = $ch = $this->createResource($url, $data, $headers, $options);
 
         \curl_multi_add_handle($this->mh, $ch);
@@ -136,7 +159,6 @@ class CurlMulti // extends CurlLite
         }
 
         \curl_multi_close($mh);
-
         return $responses;
     }
 
@@ -155,10 +177,6 @@ class CurlMulti // extends CurlLite
             // 设置超时
             \CURLOPT_TIMEOUT => (int)$opts['timeout'],
             \CURLOPT_CONNECTTIMEOUT => (int)$opts['timeout'],
-
-            // disable 'https' verify
-            \CURLOPT_SSL_VERIFYPEER => false,
-            \CURLOPT_SSL_VERIFYHOST => false,
 
             // 要求返回结果而不是输出到屏幕上
             \CURLOPT_RETURNTRANSFER => true,
@@ -214,6 +232,12 @@ class CurlMulti // extends CurlLite
             $formatted[] = 'Expect: '; // 首次速度非常慢 解决
             $formatted[] = 'Accept-Encoding: gzip, deflate'; // gzip
             $curlOptions[\CURLOPT_HTTPHEADER] = $formatted;
+        }
+
+        // disable 'https' verify
+        if ($opts['sslVerify'] === false) {
+            $curlOptions[\CURLOPT_SSL_VERIFYHOST] = 0;
+            $curlOptions[\CURLOPT_SSL_VERIFYPEER] = false;
         }
 
         // gzip
@@ -353,5 +377,13 @@ class CurlMulti // extends CurlLite
     public function setBaseUrl(string $baseUrl)
     {
         $this->baseUrl = $baseUrl;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
     }
 }

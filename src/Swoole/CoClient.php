@@ -43,31 +43,30 @@ class CoClient extends AbstractClient
      */
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
     {
-        // get request url
-        $url = $this->buildUrl($url);
-        $info = \parse_url($url);
-        if ($info === false) {
-            throw new ClientException('invalid request url');
-        }
-
-        // enable SSL verify
-        // 'sslVerify' => false/true,
-        $sslVerify = (bool)$this->getOption('sslVerify');
-        $port = empty($info['port']) ? 80 : $info['port'];
+        // get request url info
+        $info = $this->parseUrl($this->buildUrl($url));
 
         // create co client
-        $this->client = $client = new Client($info['host'], $port, $sslVerify);
-        $client->setMethod(\strtoupper($method));
-        $client->set([
-            // 'timeout' => -1
-            'timeout' => $this->getTimeout(),
-        ]);
+        $client = $this->makeSwooleClient($info);
 
+        $method = \strtoupper($method);
+        $client->setMethod($method);
+
+        // prepare client
+        $this->prepareClient($client, [], []);
+
+        // add data
         if ($data) {
             $client->setData($data);
         }
 
-        $client->execute($info['path']);
+        $uri = $info['path'];
+        if ($info['query']) {
+            $uri .= '?' . $info['query'];
+        }
+
+        // do send request.
+        $client->execute($uri);
 
         // check error
         if ($this->errNo = $client->errCode) {
@@ -79,6 +78,8 @@ class CoClient extends AbstractClient
         }
 
         $client->close();
+        $this->client = $client;
+
         return $this;
     }
 
@@ -91,25 +92,72 @@ class CoClient extends AbstractClient
      */
     public function download(string $url, string $saveAs): bool
     {
-        // get request url
-        $url = $this->buildUrl($url);
-        $info = \parse_url($url);
-        if ($info === false) {
-            throw new ClientException('invalid request url');
+        // get request url info
+        $info = $this->parseUrl($this->buildUrl($url));
+
+        $uri = $info['path'];
+        if ($info['query']) {
+            $uri .= '?' . $info['query'];
         }
 
+        $client = $this->makeSwooleClient($info);
+        $this->prepareClient($client, [], []);
+
+        return $client->download($uri, $saveAs);
+    }
+
+    private function makeSwooleClient(array $info): Client
+    {
         // enable SSL verify
-        // 'sslVerify' => false/true,
+        // options: 'sslVerify' => false/true,
         $sslVerify = (bool)$this->getOption('sslVerify');
-        $port = empty($info['port']) ? 80 : $info['port'];
+
+        if ($info['scheme'] === 'https' || $info['scheme'] === 'wss') {
+            $sslVerify = true;
+        }
 
         // create co client
-        $client = new Client($info['host'], $port, $sslVerify);
+        return new Client($info['host'], $info['port'], $sslVerify);
+    }
+
+    private function prepareClient(Client $client, array $headers, array $options)
+    {
+        // some client option
         $client->set([
             // 'timeout' => -1
             'timeout' => $this->getTimeout(),
         ]);
 
+        // merge global options data.
+        $options = \array_merge($this->options, $options);
+
+        // set headers
+        if ($headers = \array_merge($this->headers, $options['headers'], $headers)) {
+            $client->setHeaders($headers);
+        }
+
+        // set cookies
+        if ($cookies = \array_merge($this->cookies, $options['cookies'])) {
+            $client->setCookies($cookies);
+        }
+    }
+
+    protected function parseUrl(string $url): array
+    {
+        $info = \parse_url($url);
+        if ($info === false) {
+            throw new ClientException('invalid request url');
+        }
+
+        $info = \array_merge([
+            'scheme' => 'http',
+            'host' => '',
+            'port' => 80,
+            'path' => '/',
+            'query' => '',
+        ], $info);
+
+        return $info;
     }
 
     /**

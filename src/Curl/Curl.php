@@ -188,11 +188,10 @@ class Curl extends AbstractClient implements CurlClientInterface
     public function download(string $url, string $saveAs): bool
     {
         if (($fp = \fopen($saveAs, 'wb')) === false) {
-            throw new \RuntimeException('Failed to save the content', __LINE__);
+            throw new \RuntimeException('Failed to open the save file', __LINE__);
         }
 
         $data = $this->request($url)->getResponseBody();
-
         if ($this->hasError()) {
             return false;
         }
@@ -324,11 +323,28 @@ class Curl extends AbstractClient implements CurlClientInterface
 
         // merge global options.
         $options = \array_merge($this->options, $options);
+        $method = $options['method'];
+
+        switch ($method) {
+            case 'GET':
+                $curlOptions[\CURLOPT_HTTPGET] = true;
+                break;
+            case 'POST':
+                $curlOptions[\CURLOPT_POST] = true;
+                break;
+            case 'PUT':
+                $curlOptions[\CURLOPT_PUT] = true;
+                break;
+            case 'HEAD':
+                $curlOptions[\CURLOPT_HEADER] = true;
+                $curlOptions[\CURLOPT_NOBODY] = true;
+                break;
+            default:
+                $curlOptions[\CURLOPT_CUSTOMREQUEST] = $method;
+        }
 
         // add send data
         if ($data) {
-            $method = $options['method'];
-
             // allow post data
             if (self::$supportedMethods[$method]) {
                 \curl_setopt($ch, \CURLOPT_POSTFIELDS, $data);
@@ -344,19 +360,17 @@ class Curl extends AbstractClient implements CurlClientInterface
             $curlOptions = $this->_curlOptions;
         }
 
-        // set remote url
+        // set request url
         $curlOptions[\CURLOPT_URL] = ClientUtil::encodeURL($url);
 
-        // $options['headers'] = \array_merge($this->headers, $headers);
-
         // append http headers
-        if ($headers = \array_merge($this->headers, $headers)) {
+        if ($headers = \array_merge($this->headers, $options['headers'], $headers)) {
             $curlOptions[\CURLOPT_HTTPHEADER] = $this->formatHeaders($headers);
         }
 
         // append http cookies
-        if ($this->cookies) {
-            $curlOptions[\CURLOPT_COOKIE] = \http_build_query($this->cookies, '', '; ');
+        if ($cookies = \array_merge($this->cookies, $options['cookies'])) {
+            $curlOptions[\CURLOPT_COOKIE] = \http_build_query($cookies, '', '; ');
         }
 
         // set cookies form file
@@ -372,22 +386,24 @@ class Curl extends AbstractClient implements CurlClientInterface
 
         // set options to curl handle
         \curl_setopt_array($ch, $curlOptions);
-
         return $ch;
     }
 
-    protected function parseResponse()
+    /**
+     * parse response data string.
+     */
+    public function parseResponse()
     {
         // have been parsed || no response data
         if ($this->_responseParsed || !($response = $this->_response)) {
-            return false;
+            return ;
         }
 
-        // if no return headers data
-        if (false === $this->getOption(\CURLOPT_HEADER, false)) {
+        // if only return body. no return headers data
+        if (false === $this->getCurlOption(\CURLOPT_HEADER, false)) {
             $this->responseBody = $response;
             $this->_responseParsed = true;
-            return true;
+            return;
         }
 
         # Headers regex
@@ -411,6 +427,7 @@ class Curl extends AbstractClient implements CurlClientInterface
 
         \preg_match_all('#HTTP/(\d\.\d)\s((\d\d\d)\s((.*?)(?=HTTP)|.*))#', $versionAndStatus, $matches);
 
+        // '1.1' 200 '200 OK'
         $this->responseHeaders['Http-Version'] = \array_pop($matches[1]);
         $this->responseHeaders['Status-Code'] = \array_pop($matches[3]);
         $this->responseHeaders['Status'] = \array_pop($matches[2]);
@@ -422,7 +439,6 @@ class Curl extends AbstractClient implements CurlClientInterface
         }
 
         $this->_responseParsed = true;
-        return true;
     }
 
 ///////////////////////////////////////////////////////////////////////
@@ -541,7 +557,7 @@ class Curl extends AbstractClient implements CurlClientInterface
     }
 
     /**************************************************************************
-     * set curl options
+     * config curl options
      *************************************************************************/
 
     /**
@@ -573,7 +589,6 @@ class Curl extends AbstractClient implements CurlClientInterface
     {
         $this->_curlOptions[\CURLOPT_PROXY] = $host;
         $this->_curlOptions[\CURLOPT_PROXYPORT] = $port;
-
         return $this;
     }
 
@@ -588,7 +603,6 @@ class Curl extends AbstractClient implements CurlClientInterface
     {
         $this->_curlOptions[\CURLOPT_HTTPAUTH] = $authType;
         $this->_curlOptions[\CURLOPT_USERPWD] = "$user:$pwd";
-
         return $this;
     }
 
@@ -626,10 +640,42 @@ class Curl extends AbstractClient implements CurlClientInterface
      * disable 'https' verify
      * @return $this
      */
-    public function disableHTTPSVerify()
+    public function disableSSLVerify()
     {
+        $this->_curlOptions[\CURLOPT_SSL_VERIFYHOST] = 0;
         $this->_curlOptions[\CURLOPT_SSL_VERIFYPEER] = false;
-        $this->_curlOptions[\CURLOPT_SSL_VERIFYHOST] = false;
+        return $this;
+    }
+
+    /**
+     * 如果返回的内容有关乱码，可以尝试添加这个选项
+     * @return $this
+     */
+    public function decodeGzip()
+    {
+        $this->_curlOptions[\CURLOPT_ENCODING] = 'gzip';
+        return $this;
+    }
+
+    /**
+     * true curl_exec() 会将头文件的信息作为数据流输出到响应的最前面，此时会用 [[parseResponse()]] 解析。
+     * false curl_exec() 返回的响应就只有 body data，此时无法得到响应的headers数据
+     * @return $this
+     */
+    public function onlyReturnBody()
+    {
+        $this->_curlOptions[\CURLOPT_HEADER] = false;
+        return $this;
+    }
+
+    /**
+     * disable 'https' verify
+     * @return $this
+     */
+    public function enableSSLVerify()
+    {
+        $this->_curlOptions[\CURLOPT_SSL_VERIFYHOST] = 2;
+        $this->_curlOptions[\CURLOPT_SSL_VERIFYPEER] = true;
         return $this;
     }
 
