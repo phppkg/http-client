@@ -6,28 +6,17 @@
  * Time: 13:14
  */
 
-namespace Inhere\HttpClient\Curl;
+namespace PhpComp\Http\Client\Curl;
 
 /**
  * Class CurlExtraInterface
- * @package Inhere\HttpClient\Curl
+ * @package PhpComp\Http\Client\Curl
  */
 interface CurlExtraInterface
 {
     // ssl auth type
     const SSL_TYPE_CERT = 'cert';
     const SSL_TYPE_KEY = 'key';
-
-    /**
-     * Send request
-     * @param $url
-     * @param array $data
-     * @param string $method
-     * @param array $headers
-     * @param array $options
-     * @return self
-     */
-    public function request($url, $data = null, $method = self::GET, array $headers = [], array $options = []);
 
     public function reset();
 
@@ -45,34 +34,29 @@ interface CurlExtraInterface
      * ]
      *
      * @param array $headers
-     * @param bool $override Override exists
      * @return $this
      */
-    public function setHeaders(array $headers, $override = false);
+    public function setHeaders(array $headers);
 
-    public function getHeaders($onlyValues = false);
+    /**
+     * add headers
+     * @param array $headers
+     * @param bool $override $override Override exists
+     * @return mixed
+     */
+    public function addHeaders(array $headers, bool $override = true);
+
+    /**
+     * @return mixed
+     */
+    public function getHeaders(): array ;
 
     /**
      * Set curl options
      * @param array $options
      * @return $this
      */
-    public function setOptions(array $options);
+    public function setCurlOptions(array $options);
 
-    public function getOptions();
-
-    /**
-     * Set config for self
-     * @param array $config
-     * @return $this
-     */
-    public function setConfig(array $config);
-
-    /**
-     * Get config data
-     * @param null|string $name
-     * @param mixed $default
-     * @return array
-     */
-    public function getConfig($name = null, $default = null);
+    public function getCurlOptions(): array ;
 }

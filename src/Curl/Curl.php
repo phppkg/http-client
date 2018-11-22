@@ -6,13 +6,16 @@
  * Time: 16:40
  */
 
-namespace Inhere\HttpClient\Curl;
+namespace PhpComp\Http\Client\Curl;
 
-use Inhere\Library\Helpers\UrlHelper;
+use PhpComp\Http\Client\AbstractClient;
+use PhpComp\Http\Client\ClientUtil;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Curl
- * @package Inhere\HttpClient\Curl
+ * @package PhpComp\Http\Client\Curl
  *
  * ```
  * $curl = Curl::make([
@@ -29,69 +32,27 @@ use Inhere\Library\Helpers\UrlHelper;
  * // $curl->reset()->byAjax()->post('/users/1', $post);
  * // $curl->reset()->byJson()->post('/users/1', json_encode($post));
  * $array = $curl->getArrayData();
- *
  * ```
  */
-class Curl extends CurlLite implements CurlExtraInterface
+class Curl extends AbstractClient implements CurlExtraInterface
 {
     /**
-     * config for self
-     * @var array
-     */
-    private $_config = [
-        // open debug mode
-        'debug' => false,
-
-        // if 'debug = true ', is valid. will output log to the file. if is empty, output to STDERR.
-        'logFile' => '',
-
-        // retry times, when an error occurred.
-        'retry' => 0,
-    ];
-
-    /**
-     * The default curl options
-     * @var array
-     */
-    protected $defaultOptions = [
-        // TRUE 将 curl_exec() 获取的信息以字符串返回，而不是直接输出
-        CURLOPT_RETURNTRANSFER => true,
-
-        //
-        CURLOPT_FOLLOWLOCATION => true,
-
-        // true curl_exec() 会将头文件的信息作为数据流输出到响应的最前面，此时可用 [[self::parseResponse()]] 解析。
-        // false curl_exec() 返回的响应就只有body
-        CURLOPT_HEADER => true,
-
-        // enable debug
-        CURLOPT_VERBOSE => false,
-
-        // auto add REFERER
-        CURLOPT_AUTOREFERER => true,
-
-        CURLOPT_CONNECTTIMEOUT => 30,
-        CURLOPT_TIMEOUT => 30,
-
-        CURLOPT_SSL_VERIFYPEER => false,
-        // isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-        CURLOPT_USERAGENT => '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
-        //CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
-    ];
-
-    /**
-     * Can to retry
+     * Can to retry request
      * @var array
      */
     private static $canRetryErrorCodes = [
-        CURLE_COULDNT_RESOLVE_HOST,
-        CURLE_COULDNT_CONNECT,
-        CURLE_HTTP_NOT_FOUND,
-        CURLE_READ_ERROR,
-        CURLE_OPERATION_TIMEOUTED,
-        CURLE_HTTP_POST_ERROR,
-        CURLE_SSL_CONNECT_ERROR,
+        \CURLE_COULDNT_RESOLVE_HOST,
+        \CURLE_COULDNT_CONNECT,
+        \CURLE_HTTP_NOT_FOUND,
+        \CURLE_READ_ERROR,
+        \CURLE_OPERATION_TIMEOUTED,
+        \CURLE_HTTP_POST_ERROR,
+        \CURLE_SSL_CONNECT_ERROR,
     ];
+
+    /**************************************************************************
+     * curl config data.
+     *************************************************************************/
 
     /**
      * setting headers for curl
@@ -103,24 +64,70 @@ class Curl extends CurlLite implements CurlExtraInterface
     private $_headers = [];
 
     /**
-     * setting options for curl
-     * @var array
-     */
-    private $_options = [];
-
-    /**
      * @var array
      */
     private $_cookies = [];
 
     /**
-     * The curl exec response
+     * setting options for curl
+     * @var array
+     */
+    private $_curlOptions = [
+        // TRUE 将 curl_exec() 获取的信息以字符串返回，而不是直接输出
+        \CURLOPT_RETURNTRANSFER => true,
+
+        // 允许重定向，最多重定向5次
+        \CURLOPT_FOLLOWLOCATION => true,
+        \CURLOPT_MAXREDIRS => 5,
+
+        // true curl_exec() 会将头文件的信息作为数据流输出到响应的最前面，此时可用 [[self::parseResponse()]] 解析。
+        // false curl_exec() 返回的响应就只有body data
+        \CURLOPT_HEADER => true,
+
+        // enable debug
+        \CURLOPT_VERBOSE => false,
+
+        // auto add REFERER
+        \CURLOPT_AUTOREFERER => true,
+
+        \CURLOPT_CONNECTTIMEOUT => 30,
+        \CURLOPT_TIMEOUT => 30,
+
+        // isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+        \CURLOPT_USERAGENT => '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
+        //CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+    ];
+
+    /**************************************************************************
+     * response data.
+     *************************************************************************/
+
+    /**
+     * @var int
+     */
+    private $errNo;
+
+    /**
+     * @var string
+     */
+    private $error;
+
+    /**
+     * The curl exec response. contains headers and body
      * @var string
      */
     private $_response;
-    private $_responseBody = '';
-    private $_responseHeaders = [];
     private $_responseParsed = false;
+
+    /**
+     * @var string body string, it's parsed from $_response
+     */
+    private $_responseBody = '';
+
+    /**
+     * @var string[] headers data, it's parsed from $_response
+     */
+    private $_responseHeaders = [];
 
     /**
      * The curl exec result mete info.
@@ -134,15 +141,60 @@ class Curl extends CurlLite implements CurlExtraInterface
         'info' => '',
     ];
 
+    /**
+     * save request and response info, data from curl_getinfo()
+     * @link https://secure.php.net/manual/zh/function.curl-getinfo.php
+     * contains key:
+     * "url"
+     * "content_type"
+     * "http_code"
+     * "header_size"
+     * "request_size"
+     * "filetime"
+     * "ssl_verify_result"
+     * "redirect_count"
+     * "total_time"
+     * "namelookup_time"
+     * "connect_time"
+     * "pretransfer_time"
+     * "size_upload"
+     * "size_download"
+     * "speed_download"
+     * "speed_upload"
+     * "download_content_length"
+     * "upload_content_length"
+     * "starttransfer_time"
+     * "redirect_time"
+     */
+    private $_responseInfo = [];
 
     /**
-     * @param $method
-     * @param array $args
-     * @return mixed
+     * {@inheritDoc}
      */
-    public static function __callStatic($method, array $args)
+    public static function isAvailable(): bool
     {
-        return call_user_func_array([self::make(), $method], $args);
+        return \extension_loaded('curl');
+    }
+
+    /**
+     * __destruct
+     */
+    public function __destruct()
+    {
+        $this->reset();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function __construct(array $options = [])
+    {
+        // if 'debug = true ', is valid. will output log to the file. if is empty, output to STDERR.
+        $this->defaultOptions['logFile'] = '';
+        // collect curl_getinfo() data to $_responseInfo
+        $this->defaultOptions['saveInfo'] = true;
+
+        parent::__construct($options);
     }
 
 ///////////////////////////////////////////////////////////////////////
@@ -158,18 +210,18 @@ class Curl extends CurlLite implements CurlExtraInterface
      * param string $postFilename The post file name
      * @return mixed
      */
-    public function upload($url, $field, $filePath, $mimeType = '')
+    public function upload(string $url, string $field, string $filePath, string $mimeType = '')
     {
         if (!$mimeType) {
-            $fInfo = finfo_open(FILEINFO_MIME); // 返回 mime 类型
-            $mimeType = finfo_file($fInfo, $filePath) ?: 'application/octet-stream';
+            $fInfo = \finfo_open(\FILEINFO_MIME); // 返回 mime 类型
+            $mimeType = \finfo_file($fInfo, $filePath) ?: 'application/octet-stream';
         }
 
         // create file
-        if (function_exists('curl_file_create')) {
-            $file = curl_file_create($filePath, $mimeType); // , $postFilename
+        if (\function_exists('curl_file_create')) {
+            $file = \curl_file_create($filePath, $mimeType); // , $postFilename
         } else {
-            $this->setOption(CURLOPT_SAFE_UPLOAD, true);
+            $this->setCurlOption(\CURLOPT_SAFE_UPLOAD, true);
             $file = "@{$filePath};type={$mimeType}"; // ;filename={$postFilename}
         }
 
@@ -181,20 +233,20 @@ class Curl extends CurlLite implements CurlExtraInterface
     /**
      * File download and save
      * @param string $url
-     * @param string $saveTo
+     * @param string $saveAs
      * @return self
      * @throws \Exception
      */
-    public function download($url, $saveTo)
+    public function download(string $url, string $saveAs)
     {
-        if (($fp = fopen($saveTo, 'wb')) === false) {
+        if (($fp = \fopen($saveAs, 'wb')) === false) {
             throw new \RuntimeException('Failed to save the content', __LINE__);
         }
 
         $data = $this->request($url);
 
-        fwrite($fp, $data);
-        fclose($fp);
+        \fwrite($fp, $data);
+        \fclose($fp);
 
         return $this;
     }
@@ -202,92 +254,142 @@ class Curl extends CurlLite implements CurlExtraInterface
     /**
      * Image file download and save
      * @param string $imgUrl image url e.g. http://static.oschina.net/uploads/user/277/554046_50.jpg
-     * @param string $saveTo 图片保存路径
+     * @param string $saveDir 图片保存路径
      * @param string $rename 图片重命名(只写名称，不用后缀) 为空则使用原名称
      * @return string
      */
-    public function downloadImage($imgUrl, $saveTo, $rename = '')
+    public function downloadImage(string $imgUrl, string $saveDir, string $rename = '')
     {
         // e.g. http://static.oschina.net/uploads/user/277/554046_50.jpg?t=34512323
-        if (strpos($imgUrl, '?')) {
-            [$real,] = explode('?', $imgUrl, 2);
+        if (\strpos($imgUrl, '?')) {
+            [$real,] = \explode('?', $imgUrl, 2);
         } else {
             $real = $imgUrl;
         }
 
-        $last = trim(strrchr($real, '/'), '/');
+        $last = \trim(\strrchr($real, '/'), '/');
 
         // special url e.g http://img.blog.csdn.net/20150929103749499
-        if (false === strpos($last, '.')) {
+        if (false === \strpos($last, '.')) {
             $suffix = '.jpg';
             $name = $rename ?: $last;
         } else {
-            $info = pathinfo($real, PATHINFO_EXTENSION | PATHINFO_FILENAME);
+            $info = \pathinfo($real, PATHINFO_EXTENSION | PATHINFO_FILENAME);
             $suffix = $info['extension'] ?: '.jpg';
             $name = $rename ?: $info['filename'];
         }
 
-        $imgFile = $saveTo . '/' . $name . $suffix;
-
-        if (file_exists($imgFile)) {
+        $imgFile = $saveDir . '/' . $name . $suffix;
+        if (\file_exists($imgFile)) {
             return $imgFile;
         }
 
         // set Referrer
         $this->setReferrer('http://www.baidu.com');
-
         $imgData = $this->request($imgUrl)->getResponseBody();
 
-        file_put_contents($imgFile, $imgData);
+        \file_put_contents($imgFile, $imgData);
 
         return $imgFile;
     }
 
     /**
-     * Send request
-     * @inheritdoc
+     * Sends a PSR-7 request and returns a PSR-7 response.
+     *
+     * @param RequestInterface $request
+     * @return ResponseInterface
+     *
+     * @throws \Psr\Http\Client\ClientExceptionInterface If an error happens while processing the request.
      */
-    public function request($url, $data = null, $method = self::GET, array $headers = [], array $options = [])
+    public function sendRequest(RequestInterface $request): ResponseInterface
     {
-        $method = strtoupper($method);
+        foreach ($request->getHeaders() as $name => $values) {
+            $this->setHeader($name, \implode(', ', $values));
+        }
+
+        // send request
+        $this->request($request->getRequestTarget(), $request->getBody(), $request->getMethod());
+
+        // create response instance.
+        $psr7res = $this->createPsr7Response();
+
+        // write body data
+        $psr7res->getBody()->write($this->getResponseBody());
+
+        // with status
+        $psr7res = $psr7res->withStatus($this->getHttpCode());
+
+        // add headers
+        foreach ($this->getResponseHeaders() as $name => $value) {
+            $psr7res = $psr7res->withHeader($name, $value);
+        }
+
+        return $psr7res;
+    }
+
+    /**
+     * Send request
+     * @param string $url
+     * @param mixed $data
+     * @param string $method
+     * @param array $headers
+     * @param array $options
+     * @return $this
+     */
+    public function request(string $url, $data = null, string $method = 'GET', array $headers = [], array $options = [])
+    {
+        $method = \strtoupper($method);
+
+        // if ($method) {
+        //     $options['method'] = $method;
+        // }
 
         if (!isset(self::$supportedMethods[$method])) {
             throw new \InvalidArgumentException("The method type [$method] is not supported!");
         }
 
-        // init curl
-        $ch = curl_init();
+        // parse $options
 
+        // collect headers
+        if (isset($options['headers'])) {
+            $headers = \array_merge($options['headers'], $headers);
+        }
+
+        // set headers
+        $this->setHeaders($headers);
+
+        // get request url
+        $url = $this->buildUrl($url);
+
+        // init curl
+        $ch = \curl_init();
         $this->prepareRequest($ch, $headers, $options);
 
         // add send data
         if ($data) {
             // allow post data
             if (self::$supportedMethods[$method]) {
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                \curl_setopt($ch, \CURLOPT_POSTFIELDS, $data);
             } else {
-                $url .= (strpos($url, '?') ? '&' : '?') . http_build_query($data);
+                $url = ClientUtil::buildURL($url, $data);
             }
         }
 
-        // set request url
-        $url = $this->buildUrl($url);
-        curl_setopt($ch, CURLOPT_URL, UrlHelper::encode2($url));
+        \curl_setopt($ch, \CURLOPT_URL, ClientUtil::encodeURL($url));
 
         $response = '';
-        $retries = (int)$this->_config['retry'];
+        $retries = (int)$this->options['retry'];
 
         // execute
         while ($retries >= 0) {
-            if (false === ($response = curl_exec($ch))) {
-                $curlErrNo = curl_errno($ch);
+            if (false === ($response = \curl_exec($ch))) {
+                $curlErrNo = \curl_errno($ch);
 
-                if (false === in_array($curlErrNo, self::$canRetryErrorCodes, true)) {
-                    $curlError = curl_error($ch);
+                if (false === \in_array($curlErrNo, self::$canRetryErrorCodes, true)) {
+                    $curlError = \curl_error($ch);
 
-                    // throw new \RuntimeException(sprintf('Curl error (code %s): %s', $curlErrNo, $curlError));
-                    $this->_responseMeta['errno'] = $curlErrNo;
-                    $this->_responseMeta['error'] = $curlError;
+                    $this->errNo = $curlErrNo;
+                    $this->error = \sprintf('Curl error (code %s): %s', $this->errNo, $curlError);
                 }
 
                 $retries--;
@@ -296,18 +398,15 @@ class Curl extends CurlLite implements CurlExtraInterface
             break;
         }
 
-        // get http status code
-        $this->_responseMeta['status'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        if ($this->isDebug()) {
-            $this->_responseMeta['info'] = curl_getinfo($ch);
+        // save request and response info
+        if ($this->options['saveInfo']) {
+            $this->_responseInfo = \curl_getinfo($ch);
         }
 
         $this->_response = $response;
 
-        // close
-        curl_close($ch);
-
+        // close resource
+        \curl_close($ch);
         return $this;
     }
 
@@ -315,40 +414,42 @@ class Curl extends CurlLite implements CurlExtraInterface
 //   helper method
 ///////////////////////////////////////////////////////////////////////
 
-    protected function prepareRequest($ch, array $headers = [], array $options = [])
+    /**
+     * @param resource $ch
+     * @param array $headers
+     * @param array $opts
+     */
+    protected function prepareRequest($ch, array $headers = [], array $opts = [])
     {
         $this->resetResponse();
 
         // open debug
         if ($this->isDebug()) {
-            $this->_options[CURLOPT_VERBOSE] = true;
+            $this->_curlOptions[\CURLOPT_VERBOSE] = true;
 
             // redirect exec log to logFile.
-            if ($logFile = $this->_config['logFile']) {
-                $this->_options[CURLOPT_STDERR] = $logFile;
+            if ($logFile = $this->options['logFile']) {
+                $this->_curlOptions[\CURLOPT_STDERR] = $logFile;
             }
         }
 
         // set options, can not use `array_merge()`, $options key is int.
 
         // merge default options
-        $this->_options = self::mergeOptions($this->defaultOptions, $this->_options);
-        $this->_options = self::mergeOptions($this->_options, $options);
-
-        // set headers
-        $this->setHeaders($headers);
+        // $this->_curlOptions = ClientUtil::mergeArray($this->defaultOptions, $this->_curlOptions);
+        $this->_curlOptions = ClientUtil::mergeArray($this->_curlOptions, $opts);
 
         // append http headers to options
         if ($this->_headers) {
-            $options[CURLOPT_HTTPHEADER] = $this->getHeaders(true);
+            $options[\CURLOPT_HTTPHEADER] = $this->formatHeaders();
         }
 
         // append http cookies to options
         if ($this->_cookies) {
-            $options[CURLOPT_COOKIE] = http_build_query($this->_cookies, '', '; ');
+            $options[\CURLOPT_COOKIE] = \http_build_query($this->_cookies, '', '; ');
         }
 
-        curl_setopt_array($ch, $this->_options);
+        \curl_setopt_array($ch, $this->_curlOptions);
     }
 
     protected function parseResponse()
@@ -359,10 +460,9 @@ class Curl extends CurlLite implements CurlExtraInterface
         }
 
         // if no return headers data
-        if (false === $this->getOption(CURLOPT_HEADER, false)) {
+        if (false === $this->getOption(\CURLOPT_HEADER, false)) {
             $this->_responseBody = $response;
             $this->_responseParsed = true;
-
             return true;
         }
 
@@ -370,44 +470,61 @@ class Curl extends CurlLite implements CurlExtraInterface
         $pattern = '#HTTP/\d\.\d.*?$.*?\r\n\r\n#ims';
 
         # Extract headers from response
-        preg_match_all($pattern, $response, $matches);
+        \preg_match_all($pattern, $response, $matches);
         $headers_string = array_pop($matches[0]);
-        $headers = explode("\r\n", str_replace("\r\n\r\n", '', $headers_string));
+        $headers = \explode("\r\n", str_replace("\r\n\r\n", '', $headers_string));
 
         # Include all received headers in the $headers_string
-        while (count($matches[0])) {
-            $headers_string = array_pop($matches[0]) . $headers_string;
+        while (\count($matches[0])) {
+            $headers_string = \array_pop($matches[0]) . $headers_string;
         }
 
         # Remove all headers from the response body
-        $this->_responseBody = str_replace($headers_string, '', $response);
+        $this->_responseBody = \str_replace($headers_string, '', $response);
 
         # Extract the version and status from the first header
-        $versionAndStatus = array_shift($headers);
+        $versionAndStatus = \array_shift($headers);
 
-        preg_match_all('#HTTP/(\d\.\d)\s((\d\d\d)\s((.*?)(?=HTTP)|.*))#', $versionAndStatus, $matches);
+        \preg_match_all('#HTTP/(\d\.\d)\s((\d\d\d)\s((.*?)(?=HTTP)|.*))#', $versionAndStatus, $matches);
 
-        $this->_responseHeaders['Http-Version'] = array_pop($matches[1]);
-        $this->_responseHeaders['Status-Code'] = array_pop($matches[3]);
-        $this->_responseHeaders['Status'] = array_pop($matches[2]);
+        $this->_responseHeaders['Http-Version'] = \array_pop($matches[1]);
+        $this->_responseHeaders['Status-Code'] = \array_pop($matches[3]);
+        $this->_responseHeaders['Status'] = \array_pop($matches[2]);
 
         # Convert headers into an associative array
         foreach ($headers as $header) {
-            preg_match('#(.*?)\:\s(.*)#', $header, $matches);
+            \preg_match('#(.*?)\:\s(.*)#', $header, $matches);
             $this->_responseHeaders[$matches[1]] = $matches[2];
         }
 
         $this->_responseParsed = true;
-
         return true;
     }
 
     /**
-     * @return array
+     * @param string $url
+     * @param mixed $data
+     * @return string
      */
-    public static function getSupportedMethods()
+    protected function buildUrl(string $url, $data = null)
     {
-        return self::$supportedMethods;
+        $url = \trim($url);
+
+        // is a url part.
+        if ($this->baseUrl && !ClientUtil::isFullURL($url)) {
+            $url = $this->baseUrl . $url;
+        }
+
+        // check again
+        if (!ClientUtil::isFullURL($url)) {
+            throw new \RuntimeException("The request url is not full, URL $url");
+        }
+
+        if ($data) {
+            return ClientUtil::buildURL($url, $data);
+        }
+
+        return $url;
     }
 
 ///////////////////////////////////////////////////////////////////////
@@ -417,17 +534,41 @@ class Curl extends CurlLite implements CurlExtraInterface
     /**
      * @return bool
      */
-    public function isOk()
+    public function isOk(): bool
     {
-        return $this->_responseMeta['error'] === '';
+        return !$this->error;
     }
 
     /**
      * @return bool
      */
-    public function isFail()
+    public function isFail(): bool
     {
-        return $this->_responseMeta['error'] !== '';
+        return (bool)$this->error;
+    }
+
+    /**
+     * @return int
+     */
+    public function getHttpCode(): int
+    {
+        return $this->_responseInfo['http_code'] ?? 200;
+    }
+
+    /**
+     * @return int
+     */
+    public function getConnectTime(): int
+    {
+        return $this->_responseInfo['connect_time'] ?? 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTotalTime(): int
+    {
+        return $this->_responseInfo['total_time'] ?? 0;
     }
 
     /**
@@ -447,7 +588,11 @@ class Curl extends CurlLite implements CurlExtraInterface
         return $this->getResponseMeta($key);
     }
 
-    public function getResponseMeta($key = null)
+    /**
+     * @param string|null $key
+     * @return array|mixed|null
+     */
+    public function getResponseMeta(string $key = null)
     {
         if ($key) {
             return $this->_responseMeta[$key] ?? null;
@@ -459,11 +604,14 @@ class Curl extends CurlLite implements CurlExtraInterface
     /**
      * @return string
      */
-    public function getBody()
+    public function __toString(): string
     {
         return $this->getResponseBody();
     }
 
+    /**
+     * @return string
+     */
     public function getResponseBody()
     {
         $this->parseResponse();
@@ -485,12 +633,11 @@ class Curl extends CurlLite implements CurlExtraInterface
     public function getJsonArray()
     {
         if (!$this->getResponseBody()) {
-            return false;
+            return [];
         }
 
-        $data = json_decode($this->_responseBody, true);
-
-        if (json_last_error() > 0) {
+        $data = \json_decode($this->_responseBody, true);
+        if (\json_last_error() > 0) {
             return false;
         }
 
@@ -506,9 +653,8 @@ class Curl extends CurlLite implements CurlExtraInterface
             return false;
         }
 
-        $data = json_decode($this->_responseBody);
-
-        if (json_last_error() > 0) {
+        $data = \json_decode($this->_responseBody);
+        if (\json_last_error() > 0) {
             return false;
         }
 
@@ -538,17 +684,25 @@ class Curl extends CurlLite implements CurlExtraInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @return int
      */
-    public function getHttpCode()
+    public function getErrNo(): int
     {
-        return $this->_responseMeta['status'];
+        return $this->errNo;
+    }
+
+    /**
+     * @return string
+     */
+    public function getError(): string
+    {
+        return $this->error;
     }
 
     /**
      * Was an 'info' header returned.
      */
-    public function isInfo()
+    public function isInfo(): bool
     {
         return $this->_responseMeta['status'] >= 100 && $this->_responseMeta['status'] < 200;
     }
@@ -556,7 +710,7 @@ class Curl extends CurlLite implements CurlExtraInterface
     /**
      * Was an 'OK' response returned.
      */
-    public function isSuccess()
+    public function isSuccess(): bool
     {
         return $this->_responseMeta['status'] >= 200 && $this->_responseMeta['status'] < 300;
     }
@@ -564,7 +718,7 @@ class Curl extends CurlLite implements CurlExtraInterface
     /**
      * Was a 'redirect' returned.
      */
-    public function isRedirect()
+    public function isRedirect(): bool
     {
         return $this->_responseMeta['status'] >= 300 && $this->_responseMeta['status'] < 400;
     }
@@ -606,7 +760,7 @@ class Curl extends CurlLite implements CurlExtraInterface
      */
     public function resetOptions()
     {
-        $this->_options = [];
+        $this->_curlOptions = [];
 
         return $this;
     }
@@ -618,7 +772,7 @@ class Curl extends CurlLite implements CurlExtraInterface
     {
         $this->_response = $this->_responseBody = null;
         $this->_responseParsed = false;
-        $this->_responseHeaders = [];
+        $this->_responseInfo = $this->_responseHeaders = [];
         $this->_responseMeta = [
             // http status code
             'status' => 200,
@@ -636,12 +790,7 @@ class Curl extends CurlLite implements CurlExtraInterface
      */
     public function reset()
     {
-        return $this->resetAll();
-    }
-
-    public function resetAll()
-    {
-        $this->_headers = $this->_options = $this->_cookies = [];
+        $this->_headers = $this->_curlOptions = $this->_cookies = [];
 
         return $this->resetResponse();
     }
@@ -671,10 +820,13 @@ class Curl extends CurlLite implements CurlExtraInterface
         return $this->_cookies;
     }
 
-///////////////////////////////////////////////////////////////////////
-//   request headers
-///////////////////////////////////////////////////////////////////////
+    /**************************************************************************
+     * request headers
+     *************************************************************************/
 
+    /**
+     * @return $this
+     */
     public function byJson()
     {
         $this->setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -682,11 +834,17 @@ class Curl extends CurlLite implements CurlExtraInterface
         return $this;
     }
 
+    /**
+     * @return Curl
+     */
     public function byXhr()
     {
         return $this->byAjax();
     }
 
+    /**
+     * @return $this
+     */
     public function byAjax()
     {
         $this->setHeader('X-Requested-With', 'XMLHttpRequest');
@@ -696,19 +854,48 @@ class Curl extends CurlLite implements CurlExtraInterface
 
     /**
      * get Headers
-     * @param bool $onlyValues
      * @return array
      */
-    public function getHeaders($onlyValues = false)
+    public function getHeaders(): array
     {
-        return $onlyValues ? array_values($this->_headers) : $this->_headers;
+        return $this->_headers;
+    }
+
+    /**
+     * @return array
+     */
+    public function formatHeaders(): array
+    {
+        $formatted = [];
+        foreach ($this->_headers as $name => $value) {
+            $name = \ucwords($name);
+            $formatted[] = "$name: $value";
+        }
+
+        return $formatted;
     }
 
     /**
      * set Headers
      * @inheritdoc
      */
-    public function setHeaders(array $headers, $override = false)
+    public function setHeaders(array $headers)
+    {
+        $this->_headers = []; // clear old.
+
+        foreach ($headers as $name => $value) {
+            $this->setHeader($name, $value, true);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param array $headers
+     * @param bool $override
+     * @return $this
+     */
+    public function addHeaders(array $headers, bool $override = true)
     {
         foreach ($headers as $name => $value) {
             $this->setHeader($name, $value, $override);
@@ -718,15 +905,15 @@ class Curl extends CurlLite implements CurlExtraInterface
     }
 
     /**
-     * @param $name
-     * @param $value
+     * @param string $name
+     * @param string $value
      * @param bool $override
      * @return $this
      */
-    public function setHeader($name, $value, $override = false)
+    public function setHeader(string $name, string $value, bool $override = false)
     {
         if ($override || !isset($this->_headers[$name])) {
-            $this->_headers[$name] = ucwords($name) . ": $value";
+            $this->_headers[$name] = \ucwords($name) . ": $value";
         }
 
         return $this;
@@ -736,7 +923,7 @@ class Curl extends CurlLite implements CurlExtraInterface
      * @param string|array $name
      * @return $this
      */
-    public function delHeader($name)
+    public function delHeader(string $name)
     {
         foreach ((array)$name as $item) {
             if (isset($this->_headers[$item])) {
@@ -747,17 +934,17 @@ class Curl extends CurlLite implements CurlExtraInterface
         return $this;
     }
 
-///////////////////////////////////////////////////////////////////////
-//  request options
-///////////////////////////////////////////////////////////////////////
+    /**************************************************************************
+     * set curl options
+     *************************************************************************/
 
     /**
      * @param string $userAgent
      * @return $this
      */
-    public function setUserAgent($userAgent)
+    public function setUserAgent(string $userAgent)
     {
-        $this->_options[CURLOPT_USERAGENT] = $userAgent;
+        $this->_curlOptions[CURLOPT_USERAGENT] = $userAgent;
 
         return $this;
     }
@@ -766,22 +953,21 @@ class Curl extends CurlLite implements CurlExtraInterface
      * @param string $referrer
      * @return $this
      */
-    public function setReferrer($referrer)
+    public function setReferrer(string $referrer)
     {
-        $this->_options[CURLOPT_REFERER] = $referrer;
-
+        $this->_curlOptions[\CURLOPT_REFERER] = $referrer;
         return $this;
     }
 
     /**
      * @param string $host
-     * @param string $port
+     * @param int $port
      * @return $this
      */
-    public function setProxy($host, $port)
+    public function setProxy(string $host, int $port)
     {
-        $this->_options[CURLOPT_PROXY] = $host;
-        $this->_options[CURLOPT_PROXYPORT] = $port;
+        $this->_curlOptions[\CURLOPT_PROXY] = $host;
+        $this->_curlOptions[\CURLOPT_PROXYPORT] = $port;
 
         return $this;
     }
@@ -793,10 +979,10 @@ class Curl extends CurlLite implements CurlExtraInterface
      * @param int $authType CURLAUTH_BASIC CURLAUTH_DIGEST
      * @return $this
      */
-    public function setUserAuth($user, $pwd = '', $authType = CURLAUTH_BASIC)
+    public function setUserAuth(string $user, string $pwd = '', int $authType = CURLAUTH_BASIC)
     {
-        $this->_options[CURLOPT_HTTPAUTH] = $authType;
-        $this->_options[CURLOPT_USERPWD] = "$user:$pwd";
+        $this->_curlOptions[\CURLOPT_HTTPAUTH] = $authType;
+        $this->_curlOptions[\CURLOPT_USERPWD] = "$user:$pwd";
 
         return $this;
     }
@@ -809,24 +995,36 @@ class Curl extends CurlLite implements CurlExtraInterface
      * @param string $authType The auth type: 'cert' or 'key'
      * @return $this
      */
-    public function setSSLAuth($pwd, $file, $authType = self::SSL_TYPE_CERT)
+    public function setSSLAuth(string $pwd, string $file, string $authType = self::SSL_TYPE_CERT)
     {
         if ($authType !== self::SSL_TYPE_CERT && $authType !== self::SSL_TYPE_KEY) {
             throw new \InvalidArgumentException('The SSL auth type only allow: cert|key');
         }
 
-        if (!file_exists($file)) {
+        if (!\file_exists($file)) {
             $name = $authType === self::SSL_TYPE_CERT ? 'certificate' : 'private key';
             throw new \InvalidArgumentException("The SSL $name file not found: {$file}");
         }
 
         if ($authType === self::SSL_TYPE_CERT) {
-            $this->_options[CURLOPT_SSLCERTPASSWD] = $pwd;
-            $this->_options[CURLOPT_SSLCERT] = $file;
+            $this->_curlOptions[\CURLOPT_SSLCERTPASSWD] = $pwd;
+            $this->_curlOptions[\CURLOPT_SSLCERT] = $file;
         } else {
-            $this->_options[CURLOPT_SSLKEYPASSWD] = $pwd;
-            $this->_options[CURLOPT_SSLKEY] = $file;
+            $this->_curlOptions[\CURLOPT_SSLKEYPASSWD] = $pwd;
+            $this->_curlOptions[\CURLOPT_SSLKEY] = $file;
         }
+
+        return $this;
+    }
+
+    /**
+     * disable 'https' verify
+     * @return $this
+     */
+    public function disableHTTPSVerify()
+    {
+        $this->_curlOptions[\CURLOPT_SSL_VERIFYPEER] = false;
+        $this->_curlOptions[\CURLOPT_SSL_VERIFYHOST] = false;
 
         return $this;
     }
@@ -834,16 +1032,21 @@ class Curl extends CurlLite implements CurlExtraInterface
     /**
      * @inheritdoc
      */
-    public function setOptions(array $options)
+    public function setCurlOptions(array $options)
     {
-        $this->_options = array_merge($this->_options, $options);
+        $this->_curlOptions = array_merge($this->_curlOptions, $options);
 
         return $this;
     }
 
-    public function setOption($name, $value)
+    /**
+     * @param int $name \CURLOPT_*
+     * @param $value
+     * @return $this
+     */
+    public function setCurlOption($name, $value)
     {
-        $this->_options[$name] = $value;
+        $this->_curlOptions[$name] = $value;
 
         return $this;
     }
@@ -851,75 +1054,19 @@ class Curl extends CurlLite implements CurlExtraInterface
     /**
      * @return array
      */
-    public function getOptions()
+    public function getCurlOptions(): array
     {
-        return $this->_options;
+        return $this->_curlOptions;
     }
 
     /**
-     * @param int $name
+     * @param int|string $name
      * @param bool $default
      * @return mixed
      */
     public function getOption($name, $default = null)
     {
-        return $this->_options[$name] ?? $default;
-    }
-
-///////////////////////////////////////////////////////////////////////
-//   config self
-///////////////////////////////////////////////////////////////////////
-
-    /**
-     * @inheritdoc
-     */
-    public function getConfig($name = null, $default = null)
-    {
-        if ($name === null) {
-            return $this->_config;
-        }
-
-        return $this->_config[$name] ?? $default;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setConfig(array $config)
-    {
-        $this->_config = array_merge($this->_config, $config);
-
-        return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isDebug()
-    {
-        return (bool)$this->_config['debug'];
-    }
-
-    /**
-     * @param bool $debug
-     * @return $this
-     */
-    public function setDebug($debug)
-    {
-        $this->_config['debug'] = (bool)$debug;
-
-        return $this;
-    }
-
-    /**
-     * @param int $retry
-     * @return $this
-     */
-    public function setRetry($retry)
-    {
-        $this->_config['retry'] = (int)$retry;
-
-        return $this;
+        return $this->_curlOptions[$name] ?? $default;
     }
 
 }
