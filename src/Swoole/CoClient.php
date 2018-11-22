@@ -50,9 +50,18 @@ class CoClient extends AbstractClient
             throw new ClientException('invalid request url');
         }
 
+        // enable SSL verify
+        // 'sslVerify' => false/true,
+        $sslVerify = (bool)$this->getOption('sslVerify');
         $port = empty($info['port']) ? 80 : $info['port'];
-        $this->client = $client = new Client($info['host'], $port);
+
+        // create co client
+        $this->client = $client = new Client($info['host'], $port, $sslVerify);
         $client->setMethod(\strtoupper($method));
+        $client->set([
+            // 'timeout' => -1
+            'timeout' => $this->getTimeout(),
+        ]);
 
         if ($data) {
             $client->setData($data);
@@ -71,6 +80,36 @@ class CoClient extends AbstractClient
 
         $client->close();
         return $this;
+    }
+
+    /**
+     * File download and save
+     * @param string $url
+     * @param string $saveAs
+     * @return bool
+     * @throws \Exception
+     */
+    public function download(string $url, string $saveAs): bool
+    {
+        // get request url
+        $url = $this->buildUrl($url);
+        $info = \parse_url($url);
+        if ($info === false) {
+            throw new ClientException('invalid request url');
+        }
+
+        // enable SSL verify
+        // 'sslVerify' => false/true,
+        $sslVerify = (bool)$this->getOption('sslVerify');
+        $port = empty($info['port']) ? 80 : $info['port'];
+
+        // create co client
+        $client = new Client($info['host'], $port, $sslVerify);
+        $client->set([
+            // 'timeout' => -1
+            'timeout' => $this->getTimeout(),
+        ]);
+
     }
 
     /**

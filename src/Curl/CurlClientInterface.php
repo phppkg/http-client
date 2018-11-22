@@ -21,5 +21,5 @@ interface CurlClientInterface
      */
     public function setCurlOptions(array $options);
 
-    public function getCurlOptions(): array ;
+    public function getCurlOptions(): array;
 }

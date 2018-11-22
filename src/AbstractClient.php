@@ -45,6 +45,8 @@ abstract class AbstractClient implements ClientInterface
         'method' => 'GET', // 'POST'
         'baseUrl' => '',
         'timeout' => 10,
+        // enable SSL verify
+        'sslVerify' => false,
 
         'headers' => [
             // name => value
@@ -202,7 +204,7 @@ abstract class AbstractClient implements ClientInterface
      */
     public function patch(string $url, $data = null, array $headers = [], array $options = [])
     {
-        return $this->request($url, $data, self::PATCH, $headers,  $options);
+        return $this->request($url, $data, self::PATCH, $headers, $options);
     }
 
     /**
@@ -255,6 +257,38 @@ abstract class AbstractClient implements ClientInterface
         $this->request($request->getRequestTarget(), $request->getBody(), $request->getMethod());
 
         return $this->getPsr7Response();
+    }
+
+    /**************************************************************************
+     * config client
+     *************************************************************************/
+
+    /**
+     * @return int
+     */
+    public function getTimeout(): int
+    {
+        return (int)$this->options['timeout'];
+    }
+
+    /**
+     * @param int $seconds
+     * @return $this
+     */
+    public function setTimeout(int $seconds)
+    {
+        $this->options['timeout'] = $seconds;
+        return $this;
+    }
+
+    /**
+     * @param bool $enable
+     * @return $this
+     */
+    public function SSLVerify(bool $enable)
+    {
+        $this->options['sslVerify'] = $enable;
+        return $this;
     }
 
     /**************************************************************************
@@ -333,12 +367,13 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
+     * @param array $headers
      * @return array
      */
-    public function formatHeaders(): array
+    public function formatHeaders(array $headers): array
     {
         $formatted = [];
-        foreach ($this->headers as $name => $value) {
+        foreach ($headers as $name => $value) {
             $name = \ucwords($name);
             $formatted[] = "$name: $value";
         }

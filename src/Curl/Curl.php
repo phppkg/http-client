@@ -253,44 +253,16 @@ class Curl extends AbstractClient implements CurlClientInterface
      */
     public function request(string $url, $data = null, string $method = 'GET', array $headers = [], array $options = [])
     {
-        $method = \strtoupper($method);
-
-        // if ($method) {
-        //     $options['method'] = $method;
-        // }
+        if ($method = \strtoupper($method)) {
+            $options['method'] = $method;
+        }
 
         if (!isset(self::$supportedMethods[$method])) {
             throw new \InvalidArgumentException("The method type [$method] is not supported!");
         }
 
-        // parse $options
-
-        // collect headers
-        if (isset($options['headers'])) {
-            $headers = \array_merge($options['headers'], $headers);
-        }
-
-        // set headers
-        $this->setHeaders($headers);
-
-        // get request url
         $url = $this->buildUrl($url);
-
-        // init curl
-        $ch = \curl_init();
-        $this->prepareRequest($ch, $headers, $options);
-
-        // add send data
-        if ($data) {
-            // allow post data
-            if (self::$supportedMethods[$method]) {
-                \curl_setopt($ch, \CURLOPT_POSTFIELDS, $data);
-            } else {
-                $url = ClientUtil::buildURL($url, $data);
-            }
-        }
-
-        \curl_setopt($ch, \CURLOPT_URL, ClientUtil::encodeURL($url));
+        $ch = $this->prepareRequest($url, $data, $headers, $options);
 
         $response = '';
         $retries = (int)$this->options['retry'];
@@ -314,8 +286,8 @@ class Curl extends AbstractClient implements CurlClientInterface
         }
 
         $this->_responseInfo = \curl_getinfo($ch);
-        $this->statusCode = (int)$this->_responseInfo['http_code'];
         $this->_response = $response;
+        $this->statusCode = (int)$this->_responseInfo['http_code'];
 
         // close resource
         \curl_close($ch);
@@ -327,13 +299,18 @@ class Curl extends AbstractClient implements CurlClientInterface
 ///////////////////////////////////////////////////////////////////////
 
     /**
-     * @param resource $ch
+     * @param string $url
+     * @param mixed $data
      * @param array $headers
-     * @param array $opts
+     * @param array $options
+     * @return resource
      */
-    protected function prepareRequest($ch, array $headers = [], array $opts = [])
+    protected function prepareRequest(string $url, $data, array $headers, array $options = [])
     {
         $this->resetResponse();
+
+        // init curl
+        $ch = \curl_init();
 
         // open debug
         if ($this->isDebug()) {
@@ -345,23 +322,58 @@ class Curl extends AbstractClient implements CurlClientInterface
             }
         }
 
-        // set options, can not use `array_merge()`, $options key is int.
+        // merge global options.
+        $options = \array_merge($this->options, $options);
 
-        // merge default options
-        // $this->_curlOptions = ClientUtil::mergeArray($this->defaultOptions, $this->_curlOptions);
-        $this->_curlOptions = ClientUtil::mergeArray($this->_curlOptions, $opts);
+        // add send data
+        if ($data) {
+            $method = $options['method'];
 
-        // append http headers to options
-        if ($this->headers) {
-            $options[\CURLOPT_HTTPHEADER] = $this->formatHeaders();
+            // allow post data
+            if (self::$supportedMethods[$method]) {
+                \curl_setopt($ch, \CURLOPT_POSTFIELDS, $data);
+            } else {
+                $url = ClientUtil::buildURL($url, $data);
+            }
         }
 
-        // append http cookies to options
+        // merge curl options, can not use `array_merge()`, $_curlOptions key is int.
+        if (isset($options['curlOptions'])) {
+            $curlOptions = ClientUtil::mergeArray($this->_curlOptions, $options['curlOptions']);
+        } else {
+            $curlOptions = $this->_curlOptions;
+        }
+
+        // set remote url
+        $curlOptions[\CURLOPT_URL] = ClientUtil::encodeURL($url);
+
+        // $options['headers'] = \array_merge($this->headers, $headers);
+
+        // append http headers
+        if ($headers = \array_merge($this->headers, $headers)) {
+            $curlOptions[\CURLOPT_HTTPHEADER] = $this->formatHeaders($headers);
+        }
+
+        // append http cookies
         if ($this->cookies) {
-            $options[\CURLOPT_COOKIE] = \http_build_query($this->cookies, '', '; ');
+            $curlOptions[\CURLOPT_COOKIE] = \http_build_query($this->cookies, '', '; ');
         }
 
-        \curl_setopt_array($ch, $this->_curlOptions);
+        // set cookies form file
+        if ($cookieFile = $options['cookieFile'] ?? '') {
+            $curlOptions[\CURLOPT_COOKIEFILE] = $cookieFile;
+        }
+
+        // 设置超时
+        if ($timeout = $options['timeout'] ?? 3) {
+            $curlOptions[\CURLOPT_TIMEOUT] = $timeout;
+            $curlOptions[\CURLOPT_CONNECTTIMEOUT] = $timeout;
+        }
+
+        // set options to curl handle
+        \curl_setopt_array($ch, $curlOptions);
+
+        return $ch;
     }
 
     protected function parseResponse()

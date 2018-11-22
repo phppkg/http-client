@@ -34,17 +34,17 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     /**
      * @return bool
      */
-    public static function isAvailable(): bool ;
+    public static function isAvailable(): bool;
 
     /**
      * @return bool
      */
-    public function hasError(): bool ;
+    public function hasError(): bool;
 
     /**
      * @return string
      */
-    public function __toString(): string ;
+    public function __toString(): string;
 
     /**
      * GET
@@ -146,5 +146,5 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     /**
      * @return mixed
      */
-    public function getHeaders(): array ;
+    public function getHeaders(): array;
 }

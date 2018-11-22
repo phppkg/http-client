@@ -213,7 +213,7 @@ class CurlMulti // extends CurlLite
 
             $formatted[] = 'Expect: '; // 首次速度非常慢 解决
             $formatted[] = 'Accept-Encoding: gzip, deflate'; // gzip
-            $curlOptions[\CURLOPT_HTTPHEADER]  = $formatted;
+            $curlOptions[\CURLOPT_HTTPHEADER] = $formatted;
         }
 
         // gzip
