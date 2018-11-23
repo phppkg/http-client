@@ -6,20 +6,20 @@
 
 PHP http client library.
 
-- driver contains: `curl` `swoole`
-- implement the [PSR 18](https://github.com/php-fig/http-client)
+- 可用的驱动包括: `curl` `swoole` `fsockopen`
+- 实现接口 [PSR 18](https://github.com/php-fig/http-client) 
 
-## Install
+## 安装
 
 ```bash
 composer require php-comp/http-client
 ```
 
-## Usage
+## 使用
 
 ### CURL
 
-- simple
+- 简单使用
 
 ```php
 use PhpComp\Http\Client\Curl\Curl;
@@ -40,7 +40,7 @@ $curl->reset()->post('/users/1', $post);
 $array = $curl->getArrayData();
 ```
 
-- file upload/download
+- 文件上传下载
 
 ```text
     public function upload(string $url, string $field, string $filePath, string $mimeType = '')

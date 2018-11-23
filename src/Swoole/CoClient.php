@@ -9,7 +9,7 @@
 namespace PhpComp\Http\Client\Swoole;
 
 use PhpComp\Http\Client\AbstractClient;
-use PhpComp\Http\Client\Error\ClientException;
+use PhpComp\Http\Client\ClientUtil;
 use Swoole\Coroutine\Http\Client;
 
 /**
@@ -25,11 +25,39 @@ class CoClient extends AbstractClient
     private $client;
 
     /**
+     * @var bool
+     */
+    private $defer = false;
+
+    /**
      * @return bool
      */
     public static function isAvailable(): bool
     {
         return \class_exists(Client::class);
+    }
+
+    /**
+     * File download and save
+     * @param string $url
+     * @param string $saveAs
+     * @return bool
+     * @throws \Exception
+     */
+    public function download(string $url, string $saveAs): bool
+    {
+        // get request url info
+        $info = ClientUtil::parseUrl($this->buildUrl($url));
+
+        $uri = $info['path'];
+        if ($info['query']) {
+            $uri .= '?' . $info['query'];
+        }
+
+        $client = $this->newSwooleClient($info);
+        $this->prepareClient($client, [], []);
+
+        return $client->download($uri, $saveAs);
     }
 
     /**
@@ -43,17 +71,18 @@ class CoClient extends AbstractClient
      */
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
     {
+        if ($method) {
+            $options['method'] = \strtoupper($method);
+        }
+
         // get request url info
-        $info = $this->parseUrl($this->buildUrl($url));
+        $info = ClientUtil::parseUrl($this->buildUrl($url));
 
         // create co client
-        $client = $this->makeSwooleClient($info);
-
-        $method = \strtoupper($method);
-        $client->setMethod($method);
+        $client = $this->newSwooleClient($info);
 
         // prepare client
-        $this->prepareClient($client, [], []);
+        $this->prepareClient($client, $headers, $options);
 
         // add data
         if ($data) {
@@ -68,45 +97,32 @@ class CoClient extends AbstractClient
         // do send request.
         $client->execute($uri);
 
-        // check error
-        if ($this->errNo = $client->errCode) {
-            $this->error = \socket_strerror($client->errCode);
-        } else {
-            $this->responseBody = $client->body;
-            $this->responseHeaders = $client->headers;
-            $this->statusCode = $client->statusCode;
+        // not use defer.
+        if (!$this->defer) {
+            $this->collectResponse($client);
+            $client->close();
         }
 
-        $client->close();
         $this->client = $client;
-
         return $this;
     }
 
     /**
-     * File download and save
-     * @param string $url
-     * @param string $saveAs
-     * @return bool
-     * @throws \Exception
+     * only available on defer is true
+     * @return $this
      */
-    public function download(string $url, string $saveAs): bool
+    public function receive()
     {
-        // get request url info
-        $info = $this->parseUrl($this->buildUrl($url));
-
-        $uri = $info['path'];
-        if ($info['query']) {
-            $uri .= '?' . $info['query'];
+        if ($this->defer && $this->client !== null) {
+            // receive response
+            $this->client->recv($this->getTimeout());
+            $this->collectResponse($this->client);
         }
 
-        $client = $this->makeSwooleClient($info);
-        $this->prepareClient($client, [], []);
-
-        return $client->download($uri, $saveAs);
+        return $this;
     }
 
-    private function makeSwooleClient(array $info): Client
+    private function newSwooleClient(array $info): Client
     {
         // enable SSL verify
         // options: 'sslVerify' => false/true,
@@ -131,6 +147,10 @@ class CoClient extends AbstractClient
         // merge global options data.
         $options = \array_merge($this->options, $options);
 
+        // set method
+        $method = $this->formatAndCheckMethod($options['method']);
+        $client->setMethod($method);
+
         // set headers
         if ($headers = \array_merge($this->headers, $options['headers'], $headers)) {
             $client->setHeaders($headers);
@@ -140,24 +160,23 @@ class CoClient extends AbstractClient
         if ($cookies = \array_merge($this->cookies, $options['cookies'])) {
             $client->setCookies($cookies);
         }
+
+        // open defer
+        if ($this->defer) {
+            $client->setDefer(true);
+        }
     }
 
-    protected function parseUrl(string $url): array
+    private function collectResponse(Client $client)
     {
-        $info = \parse_url($url);
-        if ($info === false) {
-            throw new ClientException('invalid request url');
+        // check error
+        if ($this->errNo = $client->errCode) {
+            $this->error = \socket_strerror($client->errCode);
+        } else {
+            $this->responseBody = $client->body;
+            $this->responseHeaders = $client->headers;
+            $this->statusCode = $client->statusCode;
         }
-
-        $info = \array_merge([
-            'scheme' => 'http',
-            'host' => '',
-            'port' => 80,
-            'path' => '/',
-            'query' => '',
-        ], $info);
-
-        return $info;
     }
 
     /**
@@ -166,5 +185,23 @@ class CoClient extends AbstractClient
     public function getClient(): Client
     {
         return $this->client;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDefer(): bool
+    {
+        return $this->defer;
+    }
+
+    /**
+     * @param bool $defer
+     * @return CoClient
+     */
+    public function setDefer(bool $defer = true)
+    {
+        $this->defer = $defer;
+        return $this;
     }
 }

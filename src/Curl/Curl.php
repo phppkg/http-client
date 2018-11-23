@@ -10,6 +10,7 @@ namespace PhpComp\Http\Client\Curl;
 
 use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientUtil;
+use PhpComp\Http\Client\RawResponseParserTrait;
 
 /**
  * Class Curl
@@ -34,6 +35,8 @@ use PhpComp\Http\Client\ClientUtil;
  */
 class Curl extends AbstractClient implements CurlClientInterface
 {
+    use RawResponseParserTrait;
+
     // ssl auth type
     const SSL_TYPE_CERT = 'cert';
     const SSL_TYPE_KEY = 'key';
@@ -85,17 +88,6 @@ class Curl extends AbstractClient implements CurlClientInterface
         \CURLOPT_USERAGENT => '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
         //CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
     ];
-
-    /**************************************************************************
-     * response data.
-     *************************************************************************/
-
-    /**
-     * The curl exec response data string. contains headers and body
-     * @var string
-     */
-    private $_response;
-    private $_responseParsed = false;
 
     /**
      * save request and response info, data from curl_getinfo()
@@ -256,10 +248,6 @@ class Curl extends AbstractClient implements CurlClientInterface
             $options['method'] = $method;
         }
 
-        if (!isset(self::$supportedMethods[$method])) {
-            throw new \InvalidArgumentException("The method type [$method] is not supported!");
-        }
-
         $url = $this->buildUrl($url);
         $ch = $this->prepareRequest($url, $data, $headers, $options);
 
@@ -284,8 +272,17 @@ class Curl extends AbstractClient implements CurlClientInterface
             break;
         }
 
+        // if \CURLOPT_HEADER is FALSE, only return body. no headers data
+        if (false === $this->getCurlOption(\CURLOPT_HEADER, false)) {
+            $this->responseBody = $response;
+            $this->responseParsed = true;
+        } else {
+            // if CURLOPT_HEADER is TRUE, The raw response data contains headers and body
+            $this->rawResponse = $response;
+            $this->parseResponse(); // parse raw response data
+        }
+
         $this->_responseInfo = \curl_getinfo($ch);
-        $this->_response = $response;
         $this->statusCode = (int)$this->_responseInfo['http_code'];
 
         // close resource
@@ -308,9 +305,6 @@ class Curl extends AbstractClient implements CurlClientInterface
     {
         $this->resetResponse();
 
-        // init curl
-        $ch = \curl_init();
-
         // open debug
         if ($this->isDebug()) {
             $this->_curlOptions[\CURLOPT_VERBOSE] = true;
@@ -323,7 +317,7 @@ class Curl extends AbstractClient implements CurlClientInterface
 
         // merge global options.
         $options = \array_merge($this->options, $options);
-        $method = $options['method'];
+        $method = $this->formatAndCheckMethod($options['method']);
 
         switch ($method) {
             case 'GET':
@@ -342,6 +336,9 @@ class Curl extends AbstractClient implements CurlClientInterface
             default:
                 $curlOptions[\CURLOPT_CUSTOMREQUEST] = $method;
         }
+
+        // init curl
+        $ch = \curl_init();
 
         // add send data
         if ($data) {
@@ -389,58 +386,6 @@ class Curl extends AbstractClient implements CurlClientInterface
         return $ch;
     }
 
-    /**
-     * parse response data string.
-     */
-    public function parseResponse()
-    {
-        // have been parsed || no response data
-        if ($this->_responseParsed || !($response = $this->_response)) {
-            return ;
-        }
-
-        // if only return body. no return headers data
-        if (false === $this->getCurlOption(\CURLOPT_HEADER, false)) {
-            $this->responseBody = $response;
-            $this->_responseParsed = true;
-            return;
-        }
-
-        # Headers regex
-        $pattern = '#HTTP/\d\.\d.*?$.*?\r\n\r\n#ims';
-
-        # Extract headers from response
-        \preg_match_all($pattern, $response, $matches);
-        $headers_string = array_pop($matches[0]);
-        $headers = \explode("\r\n", str_replace("\r\n\r\n", '', $headers_string));
-
-        # Include all received headers in the $headers_string
-        while (\count($matches[0])) {
-            $headers_string = \array_pop($matches[0]) . $headers_string;
-        }
-
-        # Remove all headers from the response body
-        $this->responseBody = \str_replace($headers_string, '', $response);
-
-        # Extract the version and status from the first header
-        $versionAndStatus = \array_shift($headers);
-
-        \preg_match_all('#HTTP/(\d\.\d)\s((\d\d\d)\s((.*?)(?=HTTP)|.*))#', $versionAndStatus, $matches);
-
-        // '1.1' 200 '200 OK'
-        $this->responseHeaders['Http-Version'] = \array_pop($matches[1]);
-        $this->responseHeaders['Status-Code'] = \array_pop($matches[3]);
-        $this->responseHeaders['Status'] = \array_pop($matches[2]);
-
-        # Convert headers into an associative array
-        foreach ($headers as $header) {
-            \preg_match('#(.*?)\:\s(.*)#', $header, $matches);
-            $this->responseHeaders[$matches[1]] = $matches[2];
-        }
-
-        $this->_responseParsed = true;
-    }
-
 ///////////////////////////////////////////////////////////////////////
 //   response data
 ///////////////////////////////////////////////////////////////////////
@@ -462,66 +407,6 @@ class Curl extends AbstractClient implements CurlClientInterface
     }
 
     /**
-     * @return string
-     */
-    public function getResponse()
-    {
-        return $this->_response;
-    }
-
-    /**
-     * @return string
-     */
-    public function getResponseBody()
-    {
-        $this->parseResponse();
-
-        return $this->responseBody;
-    }
-
-    /**
-     * @return bool|array
-     */
-    public function getArrayData()
-    {
-        return $this->getJsonArray();
-    }
-
-    /**
-     * @return bool|array
-     */
-    public function getJsonArray()
-    {
-        if (!$this->getResponseBody()) {
-            return [];
-        }
-
-        $data = \json_decode($this->responseBody, true);
-        if (\json_last_error() > 0) {
-            return false;
-        }
-
-        return $data;
-    }
-
-    /**
-     * @return bool|\stdClass
-     */
-    public function getJsonObject()
-    {
-        if (!$this->getResponseBody()) {
-            return false;
-        }
-
-        $data = \json_decode($this->responseBody);
-        if (\json_last_error() > 0) {
-            return false;
-        }
-
-        return $data;
-    }
-
-    /**
      * @return $this
      */
     public function resetOptions()
@@ -537,8 +422,8 @@ class Curl extends AbstractClient implements CurlClientInterface
      */
     public function resetResponse()
     {
-        $this->_response = '';
-        $this->_responseParsed = false;
+        $this->rawResponse = '';
+        $this->responseParsed = false;
 
         parent::resetResponse();
         return $this;

@@ -8,6 +8,8 @@
 
 namespace PhpComp\Http\Client;
 
+use PhpComp\Http\Client\Error\ClientException;
+
 /**
  * Class ClientUtil
  * @package PhpComp\Http\Client
@@ -37,12 +39,48 @@ class ClientUtil
     }
 
     /**
+     * @param array $arr
+     * @return array
+     */
+    public static function ucwordArrayKeys(array $arr): array
+    {
+        $newMap = [];
+        foreach ($arr as $key => $value) {
+            $newMap[\ucwords($key)] = $value;
+        }
+
+        return $newMap;
+    }
+
+    /**
      * @param string $url
      * @return bool
      */
     public static function isFullURL(string $url): bool
     {
         return 0 === \strpos($url, 'http:') || 0 === \strpos($url, 'https:') || 0 === strpos($url, '//');
+    }
+
+    /**
+     * @param string $url
+     * @return array
+     */
+    public static function parseUrl(string $url): array
+    {
+        $info = \parse_url($url);
+        if ($info === false) {
+            throw new ClientException('invalid request url: ' . $url);
+        }
+
+        $info = \array_merge([
+            'scheme' => 'http',
+            'host' => '',
+            'port' => 80,
+            'path' => '/',
+            'query' => '',
+        ], $info);
+
+        return $info;
     }
 
     /**

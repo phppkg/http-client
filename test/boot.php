@@ -30,6 +30,7 @@ if (file_exists($file = dirname(__DIR__) . '/vendor/autoload.php')) {
     require $file;
 }
 
-function my_include_file($file) {
+function my_include_file($file)
+{
     include $file;
 }

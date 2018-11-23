@@ -120,9 +120,9 @@ abstract class AbstractClient implements ClientInterface
     protected $error = '';
 
     /**
-     * @var int response status code
+     * @var int response status code. eg. 200 404
      */
-    protected $statusCode = 200;
+    protected $statusCode = 0;
 
     /**
      * @var string body string, it's parsed from $_response
@@ -177,6 +177,21 @@ abstract class AbstractClient implements ClientInterface
     public static function getSupportedMethods()
     {
         return self::$supportedMethods;
+    }
+
+    /**
+     * @param string $method
+     * @return string
+     */
+    protected function formatAndCheckMethod(string $method): string
+    {
+        $method = \strtoupper($method);
+
+        if (!isset(self::$supportedMethods[$method])) {
+            throw new \InvalidArgumentException("The method type [$method] is not supported!");
+        }
+
+        return $method;
     }
 
     /**************************************************************************
@@ -262,7 +277,7 @@ abstract class AbstractClient implements ClientInterface
         }
 
         // send request
-        $this->request($request->getRequestTarget(), $request->getBody(), $request->getMethod());
+        $this->request($request->getRequestTarget(), (string)$request->getBody(), $request->getMethod());
 
         return $this->getPsr7Response();
     }
@@ -437,8 +452,10 @@ abstract class AbstractClient implements ClientInterface
      */
     public function setHeader(string $name, string $value, bool $override = false)
     {
+        $name = \ucwords($name);
+
         if ($override || !isset($this->headers[$name])) {
-            $this->headers[$name] = \ucwords($name) . ": $value";
+            $this->headers[$name] = $value;
         }
 
         return $this;
@@ -679,7 +696,6 @@ abstract class AbstractClient implements ClientInterface
     public function setDebug($debug)
     {
         $this->options['debug'] = (bool)$debug;
-
         return $this;
     }
 
@@ -699,6 +715,48 @@ abstract class AbstractClient implements ClientInterface
     public function __toString(): string
     {
         return $this->getResponseBody();
+    }
+
+    /**
+     * @return bool|array
+     */
+    public function getArrayData()
+    {
+        return $this->getJsonArray();
+    }
+
+    /**
+     * @return bool|array
+     */
+    public function getJsonArray()
+    {
+        if (!$body = $this->getResponseBody()) {
+            return [];
+        }
+
+        $data = \json_decode($body, true);
+        if (\json_last_error() > 0) {
+            return false;
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return bool|\stdClass
+     */
+    public function getJsonObject()
+    {
+        if (!$body = $this->getResponseBody()) {
+            return false;
+        }
+
+        $data = \json_decode($body);
+        if (\json_last_error() > 0) {
+            return false;
+        }
+
+        return $data;
     }
 
     /**

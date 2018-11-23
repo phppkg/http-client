@@ -10,7 +10,7 @@ namespace PhpComp\Http\Client\Test\Swoole;
 
 use PhpComp\Http\Client\Swoole\CoClient;
 use PHPUnit\Framework\TestCase;
-use Swoole\Runtime;
+use Swoole\Timer;
 
 /**
  * Class CoClientTest
@@ -19,25 +19,59 @@ use Swoole\Runtime;
  */
 class CoClientTest extends TestCase
 {
-    /*
-    protected function setUp()
-    {
-        Runtime::enableCoroutine(true);
-    }
-
     protected function tearDown()
     {
-        Runtime::enableCoroutine(false);
-    }*/
+        // parent::tearDown();
+        Timer::after(3 * 1000, function () {
+            \swoole_event_exit();
+        });
+    }
 
     public function testGet()
     {
-        \go(function () {
+        if (!CoClient::isAvailable()) {
+            return;
+        }
+
+        // http
+        $cid = \go(function () {
             $c = CoClient::create();
             $c->get('http://www.baidu.com');
 
+            $this->assertFalse($c->isDefer());
             $this->assertFalse($c->hasError());
+            $this->assertNotEmpty($c->getBody());
+            $this->assertNotEmpty($c->getResponseHeaders());
+            // \swoole_event_exit();
         });
 
+        $this->assertTrue($cid > 0);
+    }
+
+    public function testDefer()
+    {
+        if (!CoClient::isAvailable()) {
+            return;
+        }
+
+        $cid = \go(function () {
+            $c = CoClient::create();
+            $c->setDefer()->get('http://www.baidu.com');
+
+            $this->assertTrue($c->isDefer());
+            $this->assertFalse($c->hasError());
+            $this->assertEmpty($c->getBody());
+            $this->assertEmpty($c->getResponseHeaders());
+
+            $c->receive();
+
+            $this->assertFalse($c->hasError());
+            $this->assertNotEmpty($c->getBody());
+            $this->assertNotEmpty($c->getResponseHeaders());
+
+            // \swoole_event_exit();
+        });
+
+        $this->assertTrue($cid > 0);
     }
 }

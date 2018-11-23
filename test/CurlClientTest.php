@@ -31,7 +31,6 @@ class CurlClientTest extends TestCase
         $this->assertEquals(0, $c->getErrNo());
         $this->assertEquals('', $c->getError());
         $this->assertEquals(200, $c->getStatusCode());
-        $this->assertNotEmpty($c->getResponse());
         $this->assertNotEmpty($c->getBody());
         $this->assertNotEmpty($c->getResponseHeaders());
 
@@ -51,7 +50,7 @@ class CurlClientTest extends TestCase
     {
         $c = Curl::create();
         $url = 'https://github.com/php-comp/http-client/archive/master.zip';
-        $file = __DIR__.'/down-test.zip';
+        $file = __DIR__ . '/down-test.zip';
         $ok = $c->download($url, $file);
 
         $this->assertTrue($ok);
