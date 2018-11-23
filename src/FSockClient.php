@@ -8,13 +8,16 @@
 
 namespace PhpComp\Http\Client;
 
+use PhpComp\Http\Client\Traits\BuildRawHttpRequestTrait;
+use PhpComp\Http\Client\Traits\RawResponseParserTrait;
+
 /**
- * Class FSocketOpen client
+ * Class FSockClient - powered by func fsockopen()
  * @package PhpComp\Http\Client
  */
 class FSockClient extends AbstractClient
 {
-    use RawResponseParserTrait;
+    use BuildRawHttpRequestTrait, RawResponseParserTrait;
 
     /**
      * @return bool
@@ -56,6 +59,8 @@ class FSockClient extends AbstractClient
         // set timeout
         \stream_set_timeout($fp, $timeout);
 
+        // merge global options data.
+        $options = \array_merge($this->options, $options);
         $string = $this->buildHttpData($info, $headers, $options, $data);
         \fwrite($fp, $string); // send request
 
@@ -72,86 +77,4 @@ class FSockClient extends AbstractClient
         return $this;
     }
 
-    protected function buildHttpData(array $info, array $headers, array $opts, $data)
-    {
-        $uri = $info['path'];
-        if ($info['query']) {
-            $uri .= '?' . $info['query'];
-        }
-
-        // merge global options data.
-        $opts = \array_merge($this->options, $opts);
-
-        // build cookies value
-        if ($cookies = \array_merge($this->cookies, $opts['cookies'])) {
-            // "Cookie: name=value; name1=value1"
-            $headers['Cookie'] = \http_build_query($cookies, '', '; ');
-        }
-
-        $headers = \array_merge($this->headers, $opts['headers'], $headers);
-        $headers = ClientUtil::ucwordArrayKeys($headers);
-
-        if (!isset($headers['Host'])) {
-            $headers['Host'] = $info['host'];
-        }
-
-        $method = $this->formatAndCheckMethod($opts['method']);
-
-        // $heads[] = "Host: www.example.com\r\n";
-        // $heads[] = "Connection: Close\r\n";
-
-        $body = '';
-        if ($data) {
-            // allow submit body
-            if ($method === 'POST' || $method === 'PUT' || $method === 'PATCH') {
-                $body = $this->buildBodyByContentType($headers, $data);
-            } else {
-                $uri = ClientUtil::buildURL($uri, $data);
-            }
-        }
-
-        // close connection. if not add, will blocked.
-        if (!isset($headers['Connection'])) {
-            $headers['Connection'] = 'close';
-        }
-
-        $fmtHeaders = $this->formatHeaders($headers);
-
-        // eg. "GET / HTTP/1.1\r\nHost: www.example.com\r\n\r\n"
-        return \sprintf(
-            "%s %s HTTP/1.1\r\n%s\r\n\r\n%s",
-            $method, $uri, \implode("\r\n", $fmtHeaders), $body
-        );
-    }
-
-    private function buildBodyByContentType(array &$headers, $data): string
-    {
-        $defContentType = 'application/x-www-form-urlencoded';
-
-        if (\is_scalar($data)) {
-            if (!isset($headers['Content-Type'])) {
-                $headers['Content-Type'] = $defContentType;
-            }
-
-            return (string)$data;
-        }
-
-        // data is array or object.
-        if (isset($headers['Content-Type'])) {
-            $ct = $headers['Content-Type'];
-
-            // application/x-www-form-urlencoded
-            if (\stripos($ct, 'x-www-form-urlencoded')) {
-                return \http_build_query($data);
-            }
-
-            if (\stripos($ct, 'json')) {
-                return (string)\json_encode($data);
-            }
-        } else {
-            $headers['Content-Type'] = $defContentType;
-        }
-
-        return \http_build_query($data);
-    }
 }

@@ -68,6 +68,10 @@ abstract class AbstractClient implements ClientInterface
             // 'user' => '',
             // 'pwd' => '',
         ],
+        'ssl' => [
+            // 'cert' => '',
+            // ...
+        ],
         // send data(todo)
         'data' => [],
         'json' => [],
@@ -369,7 +373,6 @@ abstract class AbstractClient implements ClientInterface
     public function byJson()
     {
         $this->setHeader('Content-Type', 'application/json; charset=utf-8');
-
         return $this;
     }
 
@@ -387,7 +390,27 @@ abstract class AbstractClient implements ClientInterface
     public function byAjax()
     {
         $this->setHeader('X-Requested-With', 'XMLHttpRequest');
+        return $this;
+    }
 
+    /**
+     * Use http auth
+     * @param string $user
+     * @param string $pwd
+     * @param int $authType CURLAUTH_BASIC CURLAUTH_DIGEST
+     * @return $this
+     */
+    public function setUserAuth(string $user, string $pwd = '', int $authType = self::AUTH_BASIC)
+    {
+        if ($authType === self::AUTH_BASIC) {
+            $sign = 'Basic ' . \base64_encode("$user:$pwd");
+        } elseif ($authType === self::AUTH_DIGEST) {
+            $sign = 'Digest ' . $user . $pwd;
+        } else {
+            throw new \InvalidArgumentException('invalid auth type input');
+        }
+
+        $this->setHeader('Authorization', $sign);
         return $this;
     }
 

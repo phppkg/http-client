@@ -14,6 +14,10 @@ namespace PhpComp\Http\Client;
  */
 interface ClientInterface extends \Psr\Http\Client\ClientInterface
 {
+    // http auth
+    const AUTH_BASIC = 1;
+    const AUTH_DIGEST = 2;
+
     // request method list
     const GET = 'GET';
     const POST = 'POST';

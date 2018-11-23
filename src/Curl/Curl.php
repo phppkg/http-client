@@ -10,7 +10,7 @@ namespace PhpComp\Http\Client\Curl;
 
 use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientUtil;
-use PhpComp\Http\Client\RawResponseParserTrait;
+use PhpComp\Http\Client\Traits\RawResponseParserTrait;
 
 /**
  * Class Curl
@@ -484,7 +484,7 @@ class Curl extends AbstractClient implements CurlClientInterface
      * @param int $authType CURLAUTH_BASIC CURLAUTH_DIGEST
      * @return $this
      */
-    public function setUserAuth(string $user, string $pwd = '', int $authType = CURLAUTH_BASIC)
+    public function setUserAuth(string $user, string $pwd = '', int $authType = \CURLAUTH_BASIC)
     {
         $this->_curlOptions[\CURLOPT_HTTPAUTH] = $authType;
         $this->_curlOptions[\CURLOPT_USERPWD] = "$user:$pwd";

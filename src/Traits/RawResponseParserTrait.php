@@ -6,11 +6,11 @@
  * Time: 17:14
  */
 
-namespace PhpComp\Http\Client;
+namespace PhpComp\Http\Client\Traits;
 
 /**
  * Trait RawResponseParserTrait
- * @package PhpComp\Http\Client
+ * @package PhpComp\Http\Client\Traits
  */
 trait RawResponseParserTrait
 {
