@@ -6,7 +6,7 @@
 
 PHP http client library.
 
-- 可用的驱动包括: `curl` `swoole` `fsockopen`
+- 可用的驱动包括: `curl` `swoole` `fsockopen` `stream`
 - 实现接口 [PSR 18](https://github.com/php-fig/http-client) 
 
 ## 安装

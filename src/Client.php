@@ -24,8 +24,10 @@ class Client
     protected static $drivers = [
         'co' => CoClient::class,
         'curl' => Curl::class,
-        'fsock' => FSockClient::class,
         'stream' => StreamClient::class,
+        'fsock' => FSockClient::class,
+        'fopen' => FOpenClient::class,
+        'file' => FileClient::class,
         'co2' => CoClient2::class,
     ];
 
@@ -39,10 +41,7 @@ class Client
      */
     public static function factory(array $config): ClientInterface
     {
-        $name = '';
-        if (isset($config['driver'])) {
-            $name = $config['driver'];
-        }
+        $name = $config['driver'] ?? '';
 
         if (!$class = self::$drivers[$name] ?? '') {
             // auto select
