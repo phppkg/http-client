@@ -9,7 +9,7 @@
 namespace PhpComp\Http\Client;
 
 use PhpComp\Http\Client\Error\ClientException;
-use PhpComp\Http\Client\Traits\RawResponseParserTrait;
+use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
 use PhpComp\Http\Client\Traits\StreamContextBuildTrait;
 
 /**
@@ -18,7 +18,7 @@ use PhpComp\Http\Client\Traits\StreamContextBuildTrait;
  */
 class FOpenClient extends AbstractClient
 {
-    use RawResponseParserTrait, StreamContextBuildTrait;
+    use ParseRawResponseTrait, StreamContextBuildTrait;
 
     /**
      * The network resource handle, it's created by:

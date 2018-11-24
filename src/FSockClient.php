@@ -11,7 +11,7 @@ namespace PhpComp\Http\Client;
 use PhpComp\Http\Client\Error\ClientException;
 use PhpComp\Http\Client\Error\RequestException;
 use PhpComp\Http\Client\Traits\BuildRawHttpRequestTrait;
-use PhpComp\Http\Client\Traits\RawResponseParserTrait;
+use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
 
 /**
  * Class FSockClient - powered by func fsockopen()
@@ -19,7 +19,7 @@ use PhpComp\Http\Client\Traits\RawResponseParserTrait;
  */
 class FSockClient extends AbstractClient
 {
-    use BuildRawHttpRequestTrait, RawResponseParserTrait;
+    use BuildRawHttpRequestTrait, ParseRawResponseTrait;
 
     /**
      * @see https://secure.php.net/manual/zh/function.stream-get-meta-data.php

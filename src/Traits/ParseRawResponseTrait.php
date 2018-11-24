@@ -9,10 +9,10 @@
 namespace PhpComp\Http\Client\Traits;
 
 /**
- * Trait RawResponseParserTrait
+ * Trait ParseRawResponseTrait
  * @package PhpComp\Http\Client\Traits
  */
-trait RawResponseParserTrait
+trait ParseRawResponseTrait
 {
     /**
      * The curl exec response data string. contains headers and body
@@ -89,6 +89,7 @@ trait RawResponseParserTrait
             // \preg_match('#(.*?)\:\s(.*)#', $header, $matches);
             // $this->responseHeaders[$matches[1]] = $matches[2];
             list($name, $value) = \explode(': ', $header);
+            $name = \ucwords($name);
             $this->responseHeaders[$name] = $value;
         }
     }

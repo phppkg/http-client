@@ -21,7 +21,6 @@ composer require php-comp/http-client
 ### 创建客户端实例
 
 ```php
-
 // use factory
 $client = Client::factory([
     'driver' => 'curl', // stream, fsock, file, co, co2

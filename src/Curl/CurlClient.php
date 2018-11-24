@@ -11,7 +11,7 @@ namespace PhpComp\Http\Client\Curl;
 use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\Error\ClientException;
-use PhpComp\Http\Client\Traits\RawResponseParserTrait;
+use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
 
 /**
  * Class Curl
@@ -36,7 +36,7 @@ use PhpComp\Http\Client\Traits\RawResponseParserTrait;
  */
 class CurlClient extends AbstractClient implements CurlClientInterface
 {
-    use RawResponseParserTrait;
+    use ParseRawResponseTrait;
 
     // ssl auth type
     const SSL_TYPE_CERT = 'cert';
