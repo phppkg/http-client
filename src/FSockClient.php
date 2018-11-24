@@ -8,6 +8,8 @@
 
 namespace PhpComp\Http\Client;
 
+use PhpComp\Http\Client\Error\ClientException;
+use PhpComp\Http\Client\Error\RequestException;
 use PhpComp\Http\Client\Traits\BuildRawHttpRequestTrait;
 use PhpComp\Http\Client\Traits\RawResponseParserTrait;
 
@@ -18,6 +20,23 @@ use PhpComp\Http\Client\Traits\RawResponseParserTrait;
 class FSockClient extends AbstractClient
 {
     use BuildRawHttpRequestTrait, RawResponseParserTrait;
+
+    /**
+     * @see https://secure.php.net/manual/zh/function.stream-get-meta-data.php
+     * @var array get from \stream_get_meta_data()
+     * data like:
+     * [
+     *  'timed_out' => bool(false)
+     *  'blocked' => bool(true)
+     *  'eof' => bool(true)
+     *  'wrapper_type' => string(4) "http"
+     *  'stream_type' => string(14) "tcp_socket/ssl"
+     *  'mode' => string(2) "rb"
+     *  'unread_bytes' => int(0)
+     *  'seekable' => bool(false)
+     * ]
+     */
+    private $responseInfo = [];
 
     /**
      * @return bool
@@ -44,37 +63,55 @@ class FSockClient extends AbstractClient
 
         // get request url info
         $info = ClientUtil::parseUrl($this->buildUrl($url));
-        $timeout = $this->getTimeout();
-
-        // open sock
-        $fp = \fsockopen($info['host'], $info['port'], $errno, $error, $timeout);
-
-        // save error info
-        if (!$fp) {
-            $this->errNo = $errno;
-            $this->error = $error;
-            return $this;
-        }
-
-        // set timeout
-        \stream_set_timeout($fp, $timeout);
 
         // merge global options data.
         $options = \array_merge($this->options, $options);
-        $string = $this->buildHttpData($info, $headers, $options, $data);
-        \fwrite($fp, $string); // send request
+        $timeout = (int)$options['timeout'];
 
-        // read response
-        while (!\feof($fp)) {
-            $this->rawResponse .= \fread($fp, 4096);
+        // open socket connection
+        if (isset($options['persistent']) && $options['persistent']) {
+            $handle = \pfsockopen($info['host'], $info['port'], $errno, $error, $timeout);
+        } else {
+            $handle = \fsockopen($info['host'], $info['port'], $errno, $error, $timeout);
         }
 
-        \fclose($fp);
+        // if open fail
+        if (!$handle) {
+            throw new ClientException($error, $errno);
+        }
+
+        $string = $this->buildRawHttpData($info, $headers, $options, $data);
+
+        // set timeout
+        \stream_set_timeout($handle, $timeout);
+
+        // send request
+        if (false === \fwrite($handle, $string)) {
+            throw new RequestException('send request to server is fail');
+        }
+
+        // read response
+        while (!\feof($handle)) {
+            $this->rawResponse .= \fread($handle, 4096);
+        }
+
+        // save some info
+        $this->responseInfo = \stream_get_meta_data($handle);
+
+        \fclose($handle);
 
         // parse raw response
         $this->parseResponse();
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getResponseInfo(): array
+    {
+        return $this->responseInfo;
     }
 
 }

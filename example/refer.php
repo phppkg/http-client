@@ -1,5 +1,6 @@
 <?php
 /**
+ * # example 1 获取一个页面并发送 POST 数据
  * @link https://secure.php.net/manual/zh/context.http.php#refsect1-context.http-examples
  */
 
@@ -21,6 +22,50 @@ $opts = array('http' =>
 $context = stream_context_create($opts);
 $result = file_get_contents('http://example.com/submit.php', false, $context);
 
+?>
+
+<?php
+/**
+ * # example 2 忽略重定向并获取 header 和内容
+ * @link https://secure.php.net/manual/zh/context.http.php#refsect1-context.http-examples
+ */
+
+$url = 'http://www.example.org/header.php';
+
+$opts = array('http' =>
+    array(
+        'method' => 'GET',
+        'max_redirects' => '0',
+        'ignore_errors' => '1'
+    )
+);
+
+$context = stream_context_create($opts);
+$stream = fopen($url, 'r', false, $context);
+
+// header information as well as meta data
+// about the stream
+var_dump(stream_get_meta_data($stream));
+
+// actual data at $url
+var_dump(stream_get_contents($stream));
+fclose($stream);
+?>
+
+<?php
+/**
+ * @see https://secure.php.net/manual/zh/context.http.php#114867
+ */
+
+// php 5.4 : array syntax and header option with array value
+$data = file_get_contents('http://www.example.com/', null, stream_context_create([
+    'http' => [
+        'protocol_version' => 1.1,
+        'header' => [
+            'Connection: close',
+        ],
+    ],
+]));
 ?>
 
 <?php

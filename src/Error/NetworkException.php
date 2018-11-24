@@ -10,6 +10,7 @@ namespace PhpComp\Http\Client\Error;
 
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestInterface;
+use Throwable;
 
 /**
  * Class RequestException
@@ -21,6 +22,19 @@ class NetworkException extends \RuntimeException implements NetworkExceptionInte
      * @var RequestInterface
      */
     private $request;
+
+    /**
+     * NetworkException constructor.
+     * @param string $message
+     * @param int $code
+     * @param Throwable|null $previous
+     * @param RequestInterface|null $request
+     */
+    public function __construct(string $message = '', int $code = 0, Throwable $previous = null, RequestInterface $request = null)
+    {
+        $this->request = $request;
+        parent::__construct($message, $code, $previous);
+    }
 
     /**
      * Returns the request.

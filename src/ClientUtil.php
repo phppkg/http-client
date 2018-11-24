@@ -159,7 +159,43 @@ class ClientUtil
         $encodeUrl = \rawurlencode(\mb_convert_encoding($url, 'utf-8'));
 
         // $url  = rawurlencode($url);
-
         return \str_replace(self::$entities, self::$replacements, $encodeUrl);
+    }
+
+    /**
+     * @param array $headers
+     * @param string|array|object $data body data
+     * @return string
+     */
+    public static function buildBodyByContentType(array &$headers, $data): string
+    {
+        $defContentType = 'application/x-www-form-urlencoded';
+
+        if (\is_scalar($data)) { // string.
+            if (!isset($headers['Content-Type'])) {
+                $headers['Content-Type'] = $defContentType;
+            }
+
+            return (string)$data;
+        }
+
+        // data is array or object.
+        if (isset($headers['Content-Type'])) {
+            $ct = $headers['Content-Type'];
+
+            // application/x-www-form-urlencoded
+            if (\stripos($ct, 'x-www-form-urlencoded')) {
+                return \http_build_query($data);
+            }
+
+            // application/json
+            if (\stripos($ct, 'json')) {
+                return (string)\json_encode($data);
+            }
+        } else {
+            $headers['Content-Type'] = $defContentType;
+        }
+
+        return \http_build_query($data);
     }
 }

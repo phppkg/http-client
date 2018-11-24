@@ -811,8 +811,9 @@ abstract class AbstractClient implements ClientInterface
      * @param null $default
      * @return string
      */
-    public function getResponseHeader($name, $default = null)
+    public function getResponseHeader(string $name, $default = null)
     {
+        $name = \ucwords($name);
         return $this->responseHeaders[$name] ?? $default;
     }
 

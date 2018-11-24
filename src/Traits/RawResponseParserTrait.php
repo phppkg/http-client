@@ -38,17 +38,37 @@ trait RawResponseParserTrait
 
         # Extract headers from response
         \preg_match_all($pattern, $response, $matches);
-        $headers_string = array_pop($matches[0]);
-        $headers = \explode("\r\n", str_replace("\r\n\r\n", '', $headers_string));
+        $headersString = \array_pop($matches[0]);
+        $headers = \explode("\r\n", \str_replace("\r\n\r\n", '', $headersString));
+
+        // parse headers
+        $this->parseResponseHeaders($headers);
 
         # Include all received headers in the $headers_string
         while (\count($matches[0])) {
-            $headers_string = \array_pop($matches[0]) . $headers_string;
+            $headersString = \array_pop($matches[0]) . $headersString;
         }
 
         # Remove all headers from the response body
-        $this->responseBody = \str_replace($headers_string, '', $response);
+        $this->responseBody = \str_replace($headersString, '', $response);
 
+        $this->rawResponse = '';
+        $this->responseParsed = true;
+    }
+
+    /**
+     * @param array $headers
+     * [
+     *  "HTTP/1.0 200 OK",
+     *  "Accept-Ranges: bytes"
+     *  "Cache-Control: no-cache"
+     *  "Content-Length: 14615"
+     *  "Content-Type: text/html"
+     *  ...
+     * ]
+     */
+    protected function parseResponseHeaders(array &$headers)
+    {
         # Extract the version and status from the first header
         $versionAndStatus = \array_shift($headers);
 
@@ -59,26 +79,34 @@ trait RawResponseParserTrait
 
         $statusCode = \array_pop($matches[3]);
         if ($this->statusCode === 0) {
-            $this->statusCode = $statusCode;
+            $this->statusCode = (int)$statusCode;
         }
 
         $this->responseHeaders['Status-Msg'] = \array_pop($matches[2]);
 
         # Convert headers into an associative array
         foreach ($headers as $header) {
-            \preg_match('#(.*?)\:\s(.*)#', $header, $matches);
-            $this->responseHeaders[$matches[1]] = $matches[2];
+            // \preg_match('#(.*?)\:\s(.*)#', $header, $matches);
+            // $this->responseHeaders[$matches[1]] = $matches[2];
+            list($name, $value) = \explode(': ', $header);
+            $this->responseHeaders[$name] = $value;
         }
-
-        $this->rawResponse = '';
-        $this->responseParsed = true;
     }
 
     /**
      * @param string $rawResponse
      */
-    public function setRawResponse(string $rawResponse)
+    protected function setRawResponse(string $rawResponse)
     {
         $this->rawResponse = $rawResponse;
     }
+
+    /**
+     * @param bool $responseParsed
+     */
+    protected function setResponseParsed(bool $responseParsed)
+    {
+        $this->responseParsed = $responseParsed;
+    }
+
 }

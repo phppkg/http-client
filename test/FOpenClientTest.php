@@ -2,30 +2,28 @@
 /**
  * Created by PhpStorm.
  * User: inhere
- * Date: 2018-11-23
- * Time: 16:54
+ * Date: 2018-11-24
+ * Time: 18:59
  */
 
 namespace PhpComp\Http\Client\Test;
 
-use PhpComp\Http\Client\StreamClient;
+use PhpComp\Http\Client\FOpenClient;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Class StreamClientTest
- * @covers \PhpComp\Http\Client\StreamClient
+ * Class FOpenClientTest
+ * @covers \PhpComp\Http\Client\FOpenClient
  * @package PhpComp\Http\Client\Test
  */
-class StreamClientTest extends TestCase
+class FOpenClientTest extends TestCase
 {
     public function testGet()
     {
-        $c = StreamClient::create();
+        $c = FOpenClient::create();
         $c->get('http://www.baidu.com');
 
         $this->assertFalse($c->hasError());
         $this->assertEquals(200, $c->getStatusCode());
-        // Content-Type: text/html
-        $this->assertEquals('text/html', $c->getResponseHeader('Content-Type'));
     }
 }

@@ -17,13 +17,14 @@ use PhpComp\Http\Client\ClientUtil;
 trait BuildRawHttpRequestTrait
 {
     /**
+     * build raw HTTP request data string
      * @param array $info
      * @param array $headers
      * @param array $opts
      * @param $data
      * @return string
      */
-    protected function buildHttpData(array $info, array $headers, array $opts, $data)
+    protected function buildRawHttpData(array $info, array $headers, array $opts, $data)
     {
         $uri = $info['path'];
         if ($info['query']) {
@@ -52,7 +53,7 @@ trait BuildRawHttpRequestTrait
         if ($data) {
             // allow submit body
             if ($method === 'POST' || $method === 'PUT' || $method === 'PATCH') {
-                $body = $this->buildBodyByContentType($headers, $data);
+                $body = ClientUtil::buildBodyByContentType($headers, $data);
                 // add Content-length
                 $headers['Content-Length'] = \strlen($body);
             } else {
@@ -74,39 +75,4 @@ trait BuildRawHttpRequestTrait
         );
     }
 
-    /**
-     * @param array $headers
-     * @param $data
-     * @return string
-     */
-    protected function buildBodyByContentType(array &$headers, $data): string
-    {
-        $defContentType = 'application/x-www-form-urlencoded';
-
-        if (\is_scalar($data)) { // string.
-            if (!isset($headers['Content-Type'])) {
-                $headers['Content-Type'] = $defContentType;
-            }
-
-            return (string)$data;
-        }
-
-        // data is array or object.
-        if (isset($headers['Content-Type'])) {
-            $ct = $headers['Content-Type'];
-
-            // application/x-www-form-urlencoded
-            if (\stripos($ct, 'x-www-form-urlencoded')) {
-                return \http_build_query($data);
-            }
-
-            if (\stripos($ct, 'json')) {
-                return (string)\json_encode($data);
-            }
-        } else {
-            $headers['Content-Type'] = $defContentType;
-        }
-
-        return \http_build_query($data);
-    }
 }

@@ -275,7 +275,7 @@ class Curl extends AbstractClient implements CurlClientInterface
         // if \CURLOPT_HEADER is FALSE, only return body. no headers data
         if (false === $this->getCurlOption(\CURLOPT_HEADER, false)) {
             $this->responseBody = $response;
-            $this->responseParsed = true;
+            $this->setResponseParsed(true);
         } else {
             // if CURLOPT_HEADER is TRUE, The raw response data contains headers and body
             $this->rawResponse = $response;

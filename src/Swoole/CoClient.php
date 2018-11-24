@@ -10,6 +10,7 @@ namespace PhpComp\Http\Client\Swoole;
 
 use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientUtil;
+use PhpComp\Http\Client\Error\ClientException;
 use Swoole\Coroutine\Http\Client;
 
 /**
@@ -170,13 +171,13 @@ class CoClient extends AbstractClient
     private function collectResponse(Client $client)
     {
         // check error
-        if ($this->errNo = $client->errCode) {
-            $this->error = \socket_strerror($client->errCode);
-        } else {
-            $this->responseBody = $client->body;
-            $this->responseHeaders = $client->headers;
-            $this->statusCode = $client->statusCode;
+        if ($errno = $client->errCode) {
+            throw new ClientException(\socket_strerror($client->errCode), $errno);
         }
+
+        $this->statusCode = $client->statusCode;
+        $this->responseBody = $client->body;
+        $this->responseHeaders = $client->headers;
     }
 
     /**
