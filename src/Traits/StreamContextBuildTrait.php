@@ -12,10 +12,10 @@ use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\StreamContext;
 
 /**
- * Trait StreamContextBuilderTrait
+ * Trait StreamContextBuildTrait
  * @package PhpComp\Http\Client\Traits
  */
-trait StreamContextBuilderTrait
+trait StreamContextBuildTrait
 {
     /**
      * @var string

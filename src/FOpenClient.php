@@ -10,7 +10,7 @@ namespace PhpComp\Http\Client;
 
 use PhpComp\Http\Client\Error\ClientException;
 use PhpComp\Http\Client\Traits\RawResponseParserTrait;
-use PhpComp\Http\Client\Traits\StreamContextBuilderTrait;
+use PhpComp\Http\Client\Traits\StreamContextBuildTrait;
 
 /**
  * Class FOpenClient - powered by func fopen()
@@ -18,7 +18,7 @@ use PhpComp\Http\Client\Traits\StreamContextBuilderTrait;
  */
 class FOpenClient extends AbstractClient
 {
-    use RawResponseParserTrait, StreamContextBuilderTrait;
+    use RawResponseParserTrait, StreamContextBuildTrait;
 
     /**
      * The network resource handle, it's created by:

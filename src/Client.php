@@ -8,7 +8,7 @@
 
 namespace PhpComp\Http\Client;
 
-use PhpComp\Http\Client\Curl\Curl;
+use PhpComp\Http\Client\Curl\CurlClient;
 use PhpComp\Http\Client\Swoole\CoClient;
 use PhpComp\Http\Client\Swoole\CoClient2;
 
@@ -23,7 +23,7 @@ class Client
      */
     protected static $drivers = [
         'co' => CoClient::class,
-        'curl' => Curl::class,
+        'curl' => CurlClient::class,
         'stream' => StreamClient::class,
         'fsock' => FSockClient::class,
         'fopen' => FOpenClient::class,
@@ -61,10 +61,10 @@ class Client
 
     /**
      * @param array $options
-     * @return Curl
+     * @return CurlClient
      */
     public static function newCURL(array $options)
     {
-        return Curl::create($options);
+        return CurlClient::create($options);
     }
 }

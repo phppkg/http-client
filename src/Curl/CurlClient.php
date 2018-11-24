@@ -17,7 +17,7 @@ use PhpComp\Http\Client\Traits\RawResponseParserTrait;
  * @package PhpComp\Http\Client\Curl
  *
  * ```
- * $curl = Curl::make([
+ * $curl = CurlClient::make([
  *   'baseUrl' =>  'http://my-site.com'
  * ]);
  * $curl->get('/users/1');
@@ -33,7 +33,7 @@ use PhpComp\Http\Client\Traits\RawResponseParserTrait;
  * $array = $curl->getArrayData();
  * ```
  */
-class Curl extends AbstractClient implements CurlClientInterface
+class CurlClient extends AbstractClient implements CurlClientInterface
 {
     use RawResponseParserTrait;
 

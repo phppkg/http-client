@@ -25,7 +25,7 @@ composer require php-comp/http-client
 ```php
 use PhpComp\Http\Client\Curl\Curl;
 
-$curl = Curl::create([
+$curl = CurlClient::create([
   'baseUrl' =>  'http://my-site.com'
 ]);
 $curl->get('/users/1');
@@ -50,7 +50,7 @@ $array = $curl->getArrayData();
 ```
 
 ```php
-$curl = Curl::create([
+$curl = CurlClient::create([
   // ...
 ]);
 

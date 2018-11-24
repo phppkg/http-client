@@ -8,12 +8,12 @@
 
 namespace PhpComp\Http\Client\Test;
 
-use PhpComp\Http\Client\Curl\Curl;
+use PhpComp\Http\Client\Curl\CurlClient;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class CurlClientTest
- * @covers \PhpComp\Http\Client\Curl\Curl
+ * @covers \PhpComp\Http\Client\Curl\CurlClient
  * @package PhpComp\Http\Client\Test
  */
 class CurlClientTest extends TestCase
@@ -21,7 +21,7 @@ class CurlClientTest extends TestCase
     public function testBasic()
     {
         // http
-        $c = Curl::create();
+        $c = CurlClient::create();
         $c
             ->decodeGzip()
             // ->onlyReturnBody()
@@ -35,7 +35,7 @@ class CurlClientTest extends TestCase
         $this->assertNotEmpty($c->getResponseHeaders());
 
         // https
-        $c = Curl::create(['baseUrl' => 'https://www.baidu.com']);
+        $c = CurlClient::create(['baseUrl' => 'https://www.baidu.com']);
         $c->get('');
 
         $this->assertFalse($c->hasError());
@@ -48,7 +48,7 @@ class CurlClientTest extends TestCase
 
     public function testDownload()
     {
-        $c = Curl::create();
+        $c = CurlClient::create();
         $url = 'https://github.com/php-comp/http-client/archive/master.zip';
         $file = __DIR__ . '/down-test.zip';
         $ok = $c->download($url, $file);

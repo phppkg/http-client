@@ -10,7 +10,7 @@ namespace PhpComp\Http\Client;
 
 use PhpComp\Http\Client\Error\ClientException;
 use PhpComp\Http\Client\Traits\RawResponseParserTrait;
-use PhpComp\Http\Client\Traits\StreamContextBuilderTrait;
+use PhpComp\Http\Client\Traits\StreamContextBuildTrait;
 
 /**
  * Class FileClient - powered by func file_get_contents()
@@ -18,7 +18,7 @@ use PhpComp\Http\Client\Traits\StreamContextBuilderTrait;
  */
 class FileClient extends AbstractClient
 {
-    use StreamContextBuilderTrait, RawResponseParserTrait;
+    use StreamContextBuildTrait, RawResponseParserTrait;
 
     /**
      * @return bool
