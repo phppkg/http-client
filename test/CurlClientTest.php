@@ -27,9 +27,7 @@ class CurlClientTest extends TestCase
             // ->onlyReturnBody()
             ->get('http://www.baidu.com');
 
-        $this->assertFalse($c->hasError());
-        $this->assertEquals(0, $c->getErrNo());
-        $this->assertEquals('', $c->getError());
+        $this->assertFalse($c->isError());
         $this->assertEquals(200, $c->getStatusCode());
         $this->assertNotEmpty($c->getBody());
         $this->assertNotEmpty($c->getResponseHeaders());
@@ -38,9 +36,7 @@ class CurlClientTest extends TestCase
         $c = CurlClient::create(['baseUrl' => 'https://www.baidu.com']);
         $c->get('');
 
-        $this->assertFalse($c->hasError());
-        $this->assertEquals(0, $c->getErrNo());
-        $this->assertEquals('', $c->getError());
+        $this->assertFalse($c->isError());
         $this->assertEquals(200, $c->getStatusCode());
         $this->assertNotEmpty($c->getBody());
         $this->assertNotEmpty($c->getResponseHeaders());

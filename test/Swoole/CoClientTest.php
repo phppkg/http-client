@@ -39,7 +39,7 @@ class CoClientTest extends TestCase
             $c->get('http://www.baidu.com');
 
             $this->assertFalse($c->isDefer());
-            $this->assertFalse($c->hasError());
+            $this->assertFalse($c->isError());
             $this->assertNotEmpty($c->getBody());
             $this->assertNotEmpty($c->getResponseHeaders());
             // \swoole_event_exit();
@@ -59,13 +59,13 @@ class CoClientTest extends TestCase
             $c->setDefer()->get('http://www.baidu.com');
 
             $this->assertTrue($c->isDefer());
-            $this->assertFalse($c->hasError());
+            $this->assertFalse($c->isError());
             $this->assertEmpty($c->getBody());
             $this->assertEmpty($c->getResponseHeaders());
 
             $c->receive();
 
-            $this->assertFalse($c->hasError());
+            $this->assertFalse($c->isError());
             $this->assertNotEmpty($c->getBody());
             $this->assertNotEmpty($c->getResponseHeaders());
 

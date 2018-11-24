@@ -10,6 +10,7 @@ namespace PhpComp\Http\Client\Curl;
 
 use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientUtil;
+use PhpComp\Http\Client\Error\ClientException;
 use PhpComp\Http\Client\Traits\RawResponseParserTrait;
 
 /**
@@ -179,13 +180,13 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public function download(string $url, string $saveAs): bool
     {
-        if (($fp = \fopen($saveAs, 'wb')) === false) {
-            throw new \RuntimeException('Failed to open the save file', __LINE__);
+        $data = $this->request($url)->getResponseBody();
+        if ($this->isError()) {
+            return false;
         }
 
-        $data = $this->request($url)->getResponseBody();
-        if ($this->hasError()) {
-            return false;
+        if (($fp = \fopen($saveAs, 'wb')) === false) {
+            throw new \RuntimeException('Failed to open the save file', __LINE__);
         }
 
         \fwrite($fp, $data);
@@ -261,9 +262,9 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
                 if (false === \in_array($curlErrNo, self::$canRetryErrorCodes, true)) {
                     $curlError = \curl_error($ch);
+                    $error = \sprintf('Curl error (code %s): %s', $curlErrNo, $curlError);
 
-                    $this->errNo = $curlErrNo;
-                    $this->error = \sprintf('Curl error (code %s): %s', $this->errNo, $curlError);
+                    throw new ClientException($error, $curlErrNo);
                 }
 
                 $retries--;

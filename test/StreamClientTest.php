@@ -23,7 +23,7 @@ class StreamClientTest extends TestCase
         $c = StreamClient::create();
         $c->get('http://www.baidu.com');
 
-        $this->assertFalse($c->hasError());
+        $this->assertFalse($c->isError());
         $this->assertEquals(200, $c->getStatusCode());
         // Content-Type: text/html
         $this->assertEquals('text/html', $c->getResponseHeader('Content-Type'));

@@ -34,7 +34,7 @@ class Client
     /**
      * @param array $config
      * [
-     *  'driver' => 'curl', // 'co', 'co2'
+     *  'driver' => 'curl', // stream, fsock, file, co, co2
      *  // ...
      * ]
      * @return ClientInterface
@@ -59,12 +59,4 @@ class Client
         return $class::create($config);
     }
 
-    /**
-     * @param array $options
-     * @return CurlClient
-     */
-    public static function newCURL(array $options)
-    {
-        return CurlClient::create($options);
-    }
 }

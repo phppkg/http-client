@@ -793,7 +793,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return string
      */
-    public function getResponseBody()
+    public function getResponseBody(): string
     {
         return $this->responseBody;
     }
@@ -801,7 +801,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return array
      */
-    public function getResponseHeaders()
+    public function getResponseHeaders(): array
     {
         return $this->responseHeaders;
     }
@@ -847,30 +847,6 @@ abstract class AbstractClient implements ClientInterface
     public function isError()
     {
         return $this->statusCode >= 400 && $this->statusCode < 600;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasError(): bool
-    {
-        return (bool)$this->error;
-    }
-
-    /**
-     * @return int
-     */
-    public function getErrNo(): int
-    {
-        return $this->errNo;
-    }
-
-    /**
-     * @return string
-     */
-    public function getError(): string
-    {
-        return $this->error;
     }
 
     /**

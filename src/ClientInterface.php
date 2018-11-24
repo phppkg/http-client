@@ -41,11 +41,6 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public static function isAvailable(): bool;
 
     /**
-     * @return bool
-     */
-    public function hasError(): bool;
-
-    /**
      * @return string
      */
     public function __toString(): string;
@@ -126,6 +121,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @return self
      */
     public function resetResponse();
+
+    public function getStatusCode():int;
+    public function getResponseHeaders(): array ;
+    public function getResponseBody(): string;
 
     /**
      * set Headers

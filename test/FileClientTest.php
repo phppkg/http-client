@@ -23,7 +23,7 @@ class FileClientTest extends TestCase
         $c = FileClient::create();
         $c->get('http://www.baidu.com');
 
-        $this->assertFalse($c->hasError());
+        $this->assertFalse($c->isError());
         $this->assertEquals(200, $c->getStatusCode());
     }
 }
