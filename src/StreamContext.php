@@ -34,8 +34,8 @@ class StreamContext
      * @param resource $ctx it's created by stream_context_create()
      * @param array $options
      * [
-     *  'http' => [],
-     *  'ssl' => [],
+     *  'http' => [], // please {@see StreamContext::createHTTPOptions}
+     *  'ssl' => [], // please {@see StreamContext::createSSLOptions}
      * ]
      */
     public static function setOptions($ctx, array $options)

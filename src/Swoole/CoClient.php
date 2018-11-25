@@ -48,7 +48,7 @@ class CoClient extends AbstractClient
     public function download(string $url, string $saveAs): bool
     {
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildUrl($url));
+        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
 
         $uri = $info['path'];
         if ($info['query']) {
@@ -77,7 +77,7 @@ class CoClient extends AbstractClient
         }
 
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildUrl($url));
+        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
 
         // create co client
         $client = $this->newSwooleClient($info);
@@ -139,14 +139,33 @@ class CoClient extends AbstractClient
 
     private function prepareClient(Client $client, array $headers, array $options)
     {
-        // some client option
-        $client->set([
-            // 'timeout' => -1
-            'timeout' => $this->getTimeout(),
-        ]);
-
         // merge global options data.
         $options = \array_merge($this->options, $options);
+        $coOptions = [
+            // 'timeout' => -1
+            'timeout' => (int)$options['timeout'],
+        ];
+
+        // 代理配置
+        if ($proxy = $options['proxy']) {
+            $coOptions['http_proxy_host'] = $proxy['host'];
+            $coOptions['http_proxy_port'] = $proxy['port'];
+        }
+
+        /**
+         * @see https://wiki.swoole.com/wiki/page/p-client_setting.html
+         * @see https://wiki.swoole.com/wiki/page/726.html
+         * 'timeout'
+         * 'ssl_cert_file'
+         * 'ssl_key_file'
+         * ... more
+         */
+        if (isset($options['coOptions'])) {
+            $coOptions = \array_merge($coOptions, $options['coOptions']);
+        }
+
+        // some swoole client option
+        $client->set($coOptions);
 
         // set method
         $method = $this->formatAndCheckMethod($options['method']);

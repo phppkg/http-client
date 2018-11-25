@@ -22,12 +22,6 @@ class StreamClient extends AbstractClient
     use BuildRawHttpRequestTrait, ParseRawResponseTrait;
 
     /**
-     * stream context. it's create by stream_context_create()
-     * @var resource
-     */
-    protected $context;
-
-    /**
      * @see https://secure.php.net/manual/zh/function.stream-get-meta-data.php
      * @var array get from \stream_get_meta_data()
      * data like:
@@ -71,12 +65,24 @@ class StreamClient extends AbstractClient
         }
 
         $method = $this->formatAndCheckMethod($opts['method']);
-
-        StreamContext::setHTTPOptions($context, [
+        $httpOptions = [
             'method' => $method,
             'timeout' => (int)$opts['timeout'],
             // 'content' => $body,
-        ]);
+        ];
+
+        // 设置代理
+        if ($proxy = $opts['proxy']) {
+            $httpOptions['proxy'] = \sprintf('tcp://%s:%d', $proxy['host'], (int)$proxy['port']);
+        }
+
+        StreamContext::setHTTPOptions($context, $httpOptions);
+
+        // user can custom set context options.
+        // please refer StreamContext::createXXOptions()
+        if (isset($opts['streamContextOptions'])) {
+            StreamContext::setOptions($context, $opts['streamContextOptions']);
+        }
 
         return $context;
     }
@@ -100,7 +106,7 @@ class StreamClient extends AbstractClient
         $options = \array_merge($this->options, $options);
 
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildUrl($url));
+        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
         $ctx = $this->buildStreamContext($options);
 
         $timeout = (int)$options['timeout'];
@@ -144,6 +150,18 @@ class StreamClient extends AbstractClient
 
         // parse raw response
         $this->parseResponse();
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function resetResponse()
+    {
+        $this->rawResponse = '';
+        $this->responseParsed = false;
+
+        parent::resetResponse();
         return $this;
     }
 

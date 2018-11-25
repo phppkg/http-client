@@ -23,7 +23,7 @@ composer require php-comp/http-client
 ```php
 // use factory
 $client = Client::factory([
-    'driver' => 'curl', // stream, fsock, file, co, co2
+    'driver' => 'curl', // stream, fsock, fopen, file, co, co2
     
     // ... 更多选项
 ]);

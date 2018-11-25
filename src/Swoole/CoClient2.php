@@ -49,7 +49,7 @@ class CoClient2 extends AbstractClient
         }
 
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildUrl($url));
+        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
 
         // enable SSL verify
         // options: 'sslVerify' => false/true,
@@ -63,7 +63,7 @@ class CoClient2 extends AbstractClient
         // some client option
         $client->set([
             // 'timeout' => -1
-            'timeout' => $this->getTimeout(),
+            'timeout' => (int)$options['timeout'],
             'ssl_host_name' => $info['host']
         ]);
         $client->connect();

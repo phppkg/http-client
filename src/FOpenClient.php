@@ -72,7 +72,7 @@ class FOpenClient extends AbstractClient
         }
 
         // get request url info
-        $url = $this->buildUrl($url);
+        $url = $this->buildFullUrl($url);
         // merge global options data.
         $options = \array_merge($this->options, $options);
 
@@ -86,7 +86,7 @@ class FOpenClient extends AbstractClient
         }
 
         // set timeout
-        \stream_set_timeout($this->handle, $this->getTimeout());
+        \stream_set_timeout($this->handle, (int)$options['timeout']);
 
         // read response
         // $content = \stream_get_contents($this->handle);
@@ -94,12 +94,10 @@ class FOpenClient extends AbstractClient
             $this->responseBody .= \fread($this->handle, 4096);
         }
 
-        // don't need parse
-        $this->setResponseParsed(true);
-
         // save some info
         $this->responseInfo = \stream_get_meta_data($this->handle);
 
+        // collect headers data
         if (isset($this->responseInfo['wrapper_data'])) {
             $rawHeaders = $this->responseInfo['wrapper_data'];
             $this->parseResponseHeaders($rawHeaders);

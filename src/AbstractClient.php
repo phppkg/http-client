@@ -75,7 +75,10 @@ abstract class AbstractClient implements ClientInterface
         // send data(todo)
         'data' => [],
         'json' => [],
+        // 一些针对不同驱动的自定义选项
         // 'curlOptions' => [],
+        // 'coOptions' => [],
+        // 'streamContextOptions' => [],
     ];
 
     /**
@@ -205,9 +208,9 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function get(string $url, $data = null, array $headers = [], array $options = [])
+    public function get(string $url, $params = null, array $headers = [], array $options = [])
     {
-        return $this->request($url, $data, self::GET, $headers, $options);
+        return $this->request($url, $params, self::GET, $headers, $options);
     }
 
     /**
@@ -237,23 +240,23 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function delete(string $url, $data = null, array $headers = [], array $options = [])
+    public function delete(string $url, $params = null, array $headers = [], array $options = [])
     {
-        return $this->request($url, $data, self::DELETE, $headers, $options);
+        return $this->request($url, $params, self::DELETE, $headers, $options);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function options(string $url, $data = null, array $headers = [], array $options = [])
+    public function options(string $url, $params = null, array $headers = [], array $options = [])
     {
-        return $this->request($url, $data, self::OPTIONS, $headers, $options);
+        return $this->request($url, $params, self::OPTIONS, $headers, $options);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function head(string $url, $params = [], array $headers = [], array $options = [])
+    public function head(string $url, $params = null, array $headers = [], array $options = [])
     {
         return $this->request($url, $params, self::HEAD, $headers, $options);
     }
@@ -261,7 +264,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function trace(string $url, $params = [], array $headers = [], array $options = [])
+    public function trace(string $url, $params = null, array $headers = [], array $options = [])
     {
         return $this->request($url, $params, self::TRACE, $headers, $options);
     }
@@ -284,6 +287,28 @@ abstract class AbstractClient implements ClientInterface
         $this->request($request->getRequestTarget(), (string)$request->getBody(), $request->getMethod());
 
         return $this->getPsr7Response();
+    }
+
+    /**
+     * File download and save
+     * @param string $url
+     * @param string $saveAs
+     * @return bool
+     * @throws \Exception
+     */
+    public function download(string $url, string $saveAs): bool
+    {
+        $data = $this->request($url)->getResponseBody();
+        if ($this->isError()) {
+            return false;
+        }
+
+        if (($fp = \fopen($saveAs, 'wb')) === false) {
+            throw new \RuntimeException('Failed to open the save file', __LINE__);
+        }
+
+        \fwrite($fp, $data);
+        return \fclose($fp);
     }
 
     /**************************************************************************
@@ -328,7 +353,7 @@ abstract class AbstractClient implements ClientInterface
      * @param string $value The value for the provided cookie name
      * @return $this
      */
-    public function setCookie($key, $value)
+    public function setCookie(string $key, $value)
     {
         $this->cookies[$key] = $value;
         return $this;
@@ -337,7 +362,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return array
      */
-    public function getCookies()
+    public function getCookies(): array
     {
         return $this->cookies;
     }
@@ -394,6 +419,16 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
+     * @param string $userAgent
+     * @return $this
+     */
+    public function setUserAgent(string $userAgent)
+    {
+        $this->setHeader('User-Agent', $userAgent);
+        return $this;
+    }
+
+    /**
      * Use http auth
      * @param string $user
      * @param string $pwd
@@ -415,6 +450,21 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
+     * @param string $host
+     * @param int $port
+     * @return $this
+     */
+    public function setProxy(string $host, int $port)
+    {
+        $this->options['proxy'] = [
+            'host' => $host,
+            'port' => $port,
+        ];
+
+        return $this;
+    }
+
+    /**
      * get Headers
      * @return array
      */
@@ -424,6 +474,7 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
+     * convert [key => val] to ["key: val"]
      * @param array $headers
      * @return array
      */
@@ -490,9 +541,11 @@ abstract class AbstractClient implements ClientInterface
      */
     public function delHeader($names)
     {
-        foreach ((array)$names as $item) {
-            if (isset($this->headers[$item])) {
-                unset($this->headers[$item]);
+        foreach ((array)$names as $name) {
+            $name = \ucwords($name);
+
+            if (isset($this->headers[$name])) {
+                unset($this->headers[$name]);
             }
         }
 
@@ -508,7 +561,7 @@ abstract class AbstractClient implements ClientInterface
      * @param mixed $data
      * @return string
      */
-    protected function buildUrl(string $url, $data = null)
+    protected function buildFullUrl(string $url, $data = null)
     {
         $url = \trim($url);
 
@@ -637,26 +690,12 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param \Closure $responseCreator
+     * @return AbstractClient
      */
-    public function setResponseCreator(\Closure $responseCreator): void
+    public function setResponseCreator(\Closure $responseCreator)
     {
         $this->responseCreator = $responseCreator;
-    }
-
-    /**
-     * @return array
-     */
-    public function getCurlOptions(): array
-    {
-        return $this->options;
-    }
-
-    /**
-     * @param array $options
-     */
-    public function setCurlOptions(array $options)
-    {
-        $this->options = $options;
+        return $this;
     }
 
     /**
@@ -666,7 +705,6 @@ abstract class AbstractClient implements ClientInterface
     public function setBaseUrl(string $url)
     {
         $this->baseUrl = \trim($url);
-
         return $this;
     }
 
@@ -844,7 +882,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * Was an 'error' returned (client error or server error).
      */
-    public function isError()
+    public function isError(): bool
     {
         return $this->statusCode >= 400 && $this->statusCode < 600;
     }
@@ -857,4 +895,14 @@ abstract class AbstractClient implements ClientInterface
         return $this->statusCode;
     }
 
+    /**
+     * @return string
+     */
+    public function getDriverName(): string
+    {
+        $class = static::class;
+        $name = \substr($class, \strrpos($class, '\\') + 1);
+
+        return \strtolower(\str_replace('Client', '', $name));
+    }
 }

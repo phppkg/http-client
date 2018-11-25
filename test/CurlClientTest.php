@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
  */
 class CurlClientTest extends TestCase
 {
-    public function testBasic()
+    public function testGet()
     {
         // http
         $c = CurlClient::create();
@@ -29,6 +29,7 @@ class CurlClientTest extends TestCase
 
         $this->assertFalse($c->isError());
         $this->assertEquals(200, $c->getStatusCode());
+        $this->assertEquals('curl', $c->getDriverName());
         $this->assertNotEmpty($c->getBody());
         $this->assertNotEmpty($c->getResponseHeaders());
 

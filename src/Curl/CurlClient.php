@@ -166,31 +166,11 @@ class CurlClient extends AbstractClient implements CurlClientInterface
             $file = "@{$filePath};type={$mimeType}"; // ;filename={$postFilename}
         }
 
-        $headers = ['Content-Type' => 'multipart/form-data'];
+        $headers = [
+            'Content-Type' => 'multipart/form-data'
+        ];
 
         return $this->post($url, [$field => $file], $headers);
-    }
-
-    /**
-     * File download and save
-     * @param string $url
-     * @param string $saveAs
-     * @return bool
-     * @throws \Exception
-     */
-    public function download(string $url, string $saveAs): bool
-    {
-        $data = $this->request($url)->getResponseBody();
-        if ($this->isError()) {
-            return false;
-        }
-
-        if (($fp = \fopen($saveAs, 'wb')) === false) {
-            throw new \RuntimeException('Failed to open the save file', __LINE__);
-        }
-
-        \fwrite($fp, $data);
-        return \fclose($fp);
     }
 
     /**
@@ -249,7 +229,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
             $options['method'] = $method;
         }
 
-        $url = $this->buildUrl($url);
+        $url = $this->buildFullUrl($url);
         $ch = $this->prepareRequest($url, $data, $headers, $options);
 
         $response = '';
@@ -382,6 +362,12 @@ class CurlClient extends AbstractClient implements CurlClientInterface
             $curlOptions[\CURLOPT_CONNECTTIMEOUT] = $timeout;
         }
 
+        // 设置代理
+        if ($proxy = $options['proxy']) {
+            $curlOptions[\CURLOPT_PROXY] = $proxy['host'];
+            $curlOptions[\CURLOPT_PROXYPORT] = (int)$proxy['port'];
+        }
+
         // set options to curl handle
         \curl_setopt_array($ch, $curlOptions);
         return $ch;
@@ -412,9 +398,9 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public function resetOptions()
     {
-        $this->_curlOptions = [];
-        parent::resetOptions();
+        // $this->_curlOptions = [];
 
+        parent::resetOptions();
         return $this;
     }
 
@@ -428,18 +414,6 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
         parent::resetResponse();
         return $this;
-    }
-
-    /**
-     * Reset the last time headers,cookies,options,response data.
-     * @return $this
-     */
-    public function reset()
-    {
-        $this->_curlOptions = [];
-        $this->resetRequest();
-
-        return $this->resetResponse();
     }
 
     /**************************************************************************
@@ -463,18 +437,6 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     public function setReferrer(string $referrer)
     {
         $this->_curlOptions[\CURLOPT_REFERER] = $referrer;
-        return $this;
-    }
-
-    /**
-     * @param string $host
-     * @param int $port
-     * @return $this
-     */
-    public function setProxy(string $host, int $port)
-    {
-        $this->_curlOptions[\CURLOPT_PROXY] = $host;
-        $this->_curlOptions[\CURLOPT_PROXYPORT] = $port;
         return $this;
     }
 

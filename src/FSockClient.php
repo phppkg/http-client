@@ -62,7 +62,7 @@ class FSockClient extends AbstractClient
         }
 
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildUrl($url));
+        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
 
         // merge global options data.
         $options = \array_merge($this->options, $options);
@@ -103,6 +103,18 @@ class FSockClient extends AbstractClient
         // parse raw response
         $this->parseResponse();
 
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function resetResponse()
+    {
+        $this->rawResponse = '';
+        $this->responseParsed = false;
+
+        parent::resetResponse();
         return $this;
     }
 

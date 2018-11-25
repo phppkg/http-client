@@ -72,11 +72,25 @@ trait StreamContextBuildTrait
             }
         }
 
-        StreamContext::setHTTPOptions($context, [
+        $httpOptions = [
             'method' => $method,
-            'timeout' => (int)$opts['timeout'],
+            'timeout' => (int)$opts['timeout'], // 超时
+            'header' => $this->formatHeaders($headers),
             'content' => $body,
-        ]);
+        ];
+
+        // 设置代理
+        if ($proxy = $opts['proxy']) {
+            $httpOptions['proxy'] = \sprintf('tcp://%s:%d', $proxy['host'], (int)$proxy['port']);
+        }
+
+        StreamContext::setHTTPOptions($context, $httpOptions);
+
+        // user can custom set context options.
+        // please refer StreamContext::createXXOptions()
+        if (isset($opts['streamContextOptions'])) {
+            StreamContext::setOptions($context, (array)$opts['streamContextOptions']);
+        }
 
         return $context;
     }

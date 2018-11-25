@@ -49,7 +49,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * GET
      * {@inheritdoc}
      */
-    public function get(string $url, $data = null, array $headers = [], array $options = []);
+    public function get(string $url, $params = null, array $headers = [], array $options = []);
 
     /**
      * POST
@@ -73,25 +73,25 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * DELETE
      * {@inheritdoc}
      */
-    public function delete(string $url, $data = null, array $headers = [], array $options = []);
+    public function delete(string $url, $params = null, array $headers = [], array $options = []);
 
     /**
      * OPTIONS
      * {@inheritdoc}
      */
-    public function options(string $url, $data = null, array $headers = [], array $options = []);
+    public function options(string $url, $params = null, array $headers = [], array $options = []);
 
     /**
      * HEAD
      * {@inheritdoc}
      */
-    public function head(string $url, $data = [], array $headers = [], array $options = []);
+    public function head(string $url, $params = null, array $headers = [], array $options = []);
 
     /**
      * TRACE
      * {@inheritdoc}
      */
-    public function trace(string $url, $data = [], array $headers = [], array $options = []);
+    public function trace(string $url, $params = null, array $headers = [], array $options = []);
 
     /**
      * Send request to remote URL
@@ -103,6 +103,12 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @return self
      */
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = []);
+
+    /**
+     * @param \Closure $responseCreator
+     * @return self
+     */
+    public function setResponseCreator(\Closure $responseCreator);
 
     /**
      * reset options, request headers, cookies, response data...
@@ -122,9 +128,26 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      */
     public function resetResponse();
 
-    public function getStatusCode():int;
-    public function getResponseHeaders(): array ;
-    public function getResponseBody(): string;
+    /**************************************************************************
+     * config client
+     *************************************************************************/
+
+    /**
+     * @param string $host
+     * @param int $port
+     * @return $this
+     */
+    public function setProxy(string $host, int $port);
+
+    /**
+     * @param string $userAgent
+     * @return $this
+     */
+    public function setUserAgent(string $userAgent);
+
+    /**************************************************************************
+     * request cookies
+     *************************************************************************/
 
     /**
      * set Headers
@@ -147,7 +170,67 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function addHeaders(array $headers, bool $override = true);
 
     /**
+     * @param string|array $names
+     * @return $this
+     */
+    public function delHeader($names);
+
+    /**
      * @return mixed
      */
     public function getHeaders(): array;
+
+    /**************************************************************************
+     * request cookies
+     *************************************************************************/
+
+    /**
+     * @param string $key
+     * @param $value
+     * @return self
+     */
+    public function setCookie(string $key, $value);
+
+    /**************************************************************************
+     * response info
+     *************************************************************************/
+
+    /**
+     * Was an 'info' header returned.
+     */
+    public function isInfo(): bool;
+
+    /**
+     * Was an 'OK' response returned.
+     */
+    public function isSuccess(): bool;
+
+    /**
+     * Was a 'redirect' returned.
+     */
+    public function isRedirect(): bool;
+
+    /**
+     * Was an 'error' returned (client error or server error).
+     */
+    public function isError(): bool;
+
+    public function getStatusCode(): int;
+
+    public function getResponseHeaders(): array;
+
+    public function getResponseBody(): string;
+
+    /**************************************************************************
+     * getter/setter
+     *************************************************************************/
+
+    /**
+     * get current driver name
+     * return like curl, stream, fsock, fopen, file, co, co2
+     * @return string
+     */
+    public function getDriverName(): string;
+
+
 }

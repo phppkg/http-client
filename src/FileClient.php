@@ -38,7 +38,7 @@ class FileClient extends AbstractClient
         }
 
         // get request url info
-        $url = $this->buildUrl($url);
+        $url = $this->buildFullUrl($url);
 
         // merge global options data.
         $options = \array_merge($this->options, $options);
@@ -59,6 +59,7 @@ class FileClient extends AbstractClient
         }
 
         /**
+         * collect headers data
          * $http_response_header will auto save HTTP response headers data.
          * @see https://secure.php.net/manual/zh/reserved.variables.httpresponseheader.php
          */
