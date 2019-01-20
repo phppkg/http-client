@@ -196,7 +196,8 @@ class CurlClient extends AbstractClient implements CurlClientInterface
             $suffix = '.jpg';
             $name = $rename ?: $last;
         } else {
-            $info = \pathinfo($real, \PATHINFO_EXTENSION | \PATHINFO_FILENAME);
+            // $info = \pathinfo($real, \PATHINFO_EXTENSION | \PATHINFO_FILENAME);
+            $info = \pathinfo($real);
             $suffix = $info['extension'] ?: '.jpg';
             $name = $rename ?: $info['filename'];
         }
