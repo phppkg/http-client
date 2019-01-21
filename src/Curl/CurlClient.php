@@ -193,16 +193,15 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
         // special url e.g http://img.blog.csdn.net/20150929103749499
         if (false === \strpos($last, '.')) {
-            $suffix = '.jpg';
+            $suffix = 'jpg';
             $name = $rename ?: $last;
         } else {
-            // $info = \pathinfo($real, \PATHINFO_EXTENSION | \PATHINFO_FILENAME);
             $info = \pathinfo($real);
-            $suffix = $info['extension'] ?: '.jpg';
+            $suffix = $info['extension'] ?: 'jpg';
             $name = $rename ?: $info['filename'];
         }
 
-        $imgFile = $saveDir . '/' . $name . $suffix;
+        $imgFile = $saveDir . '/' . $name . '.' . $suffix;
         if (\file_exists($imgFile)) {
             return $imgFile;
         }
@@ -211,7 +210,10 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         // $this->setReferrer('http://www.baidu.com');
         $imgData = $this->request($imgUrl)->getResponseBody();
 
-        \file_put_contents($imgFile, $imgData);
+        if ($imgData) {
+            \file_put_contents($imgFile, $imgData);
+        }
+
         return $imgFile;
     }
 
