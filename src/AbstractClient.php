@@ -444,7 +444,7 @@ abstract class AbstractClient implements ClientInterface
      * @param string $userAgent
      * @return $this
      */
-    public function setUserAgent(string $userAgent)
+    public function setUserAgent(string $userAgent): ClientInterface
     {
         $this->setHeader('User-Agent', $userAgent);
         return $this;
@@ -476,7 +476,7 @@ abstract class AbstractClient implements ClientInterface
      * @param int $port
      * @return $this
      */
-    public function setProxy(string $host, int $port)
+    public function setProxy(string $host, int $port): ClientInterface
     {
         $this->options['proxy'] = [
             'host' => $host,
@@ -515,7 +515,7 @@ abstract class AbstractClient implements ClientInterface
      * set Headers
      * @inheritdoc
      */
-    public function setHeaders(array $headers)
+    public function setHeaders(array $headers): ClientInterface
     {
         $this->headers = []; // clear old.
 
@@ -531,7 +531,7 @@ abstract class AbstractClient implements ClientInterface
      * @param bool $override
      * @return $this
      */
-    public function addHeaders(array $headers, bool $override = true)
+    public function addHeaders(array $headers, bool $override = true): ClientInterface
     {
         foreach ($headers as $name => $value) {
             $this->setHeader($name, $value, $override);
@@ -546,7 +546,7 @@ abstract class AbstractClient implements ClientInterface
      * @param bool $override
      * @return $this
      */
-    public function setHeader(string $name, string $value, bool $override = false)
+    public function setHeader(string $name, string $value, bool $override = false): ClientInterface
     {
         $name = ucwords($name);
 
@@ -561,7 +561,7 @@ abstract class AbstractClient implements ClientInterface
      * @param string|array $names
      * @return $this
      */
-    public function delHeader($names)
+    public function delHeader($names): ClientInterface
     {
         foreach ((array)$names as $name) {
             $name = ucwords($name);
@@ -652,7 +652,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function resetRequest()
+    public function resetRequest(): ClientInterface
     {
         $this->headers = [];
         $this->cookies = [];
@@ -662,7 +662,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function resetHeaders()
+    public function resetHeaders(): ClientInterface
     {
         $this->headers = [];
         return $this;
@@ -671,7 +671,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function resetCookies()
+    public function resetCookies(): ClientInterface
     {
         $this->cookies = [];
         return $this;
@@ -680,7 +680,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function resetResponse()
+    public function resetResponse(): ClientInterface
     {
         $this->responseBody = '';
         $this->responseHeaders = [];
@@ -691,7 +691,7 @@ abstract class AbstractClient implements ClientInterface
      * Reset the last time headers,cookies,options,response data.
      * @return $this
      */
-    public function reset()
+    public function reset(): ClientInterface
     {
         $this->resetOptions();
 
@@ -714,7 +714,7 @@ abstract class AbstractClient implements ClientInterface
      * @param Closure $responseCreator
      * @return AbstractClient
      */
-    public function setResponseCreator(Closure $responseCreator)
+    public function setResponseCreator(Closure $responseCreator): ClientInterface
     {
         $this->responseCreator = $responseCreator;
         return $this;
@@ -724,7 +724,7 @@ abstract class AbstractClient implements ClientInterface
      * @param string $url
      * @return $this
      */
-    public function setBaseUrl(string $url)
+    public function setBaseUrl(string $url): ClientInterface
     {
         $this->baseUrl = trim($url);
         return $this;
@@ -776,7 +776,7 @@ abstract class AbstractClient implements ClientInterface
      * @param bool $debug
      * @return $this
      */
-    public function setDebug($debug)
+    public function setDebug($debug): ClientInterface
     {
         $this->options['debug'] = (bool)$debug;
         return $this;
@@ -786,7 +786,7 @@ abstract class AbstractClient implements ClientInterface
      * @param int $retry
      * @return $this
      */
-    public function setRetry(int $retry)
+    public function setRetry(int $retry): ClientInterface
     {
         $this->options['retry'] = $retry;
         return $this;
@@ -834,7 +834,7 @@ abstract class AbstractClient implements ClientInterface
             return false;
         }
 
-        $data = json_decode($body);
+        $data = json_decode($body, false);
         if (json_last_error() > 0) {
             return false;
         }
@@ -845,7 +845,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return string
      */
-    public function getBody()
+    public function getBody(): string
     {
         return $this->getResponseBody();
     }
@@ -871,7 +871,7 @@ abstract class AbstractClient implements ClientInterface
      * @param null $default
      * @return string
      */
-    public function getResponseHeader(string $name, $default = null)
+    public function getResponseHeader(string $name, $default = null): ?string
     {
         $name = ucwords($name);
         return $this->responseHeaders[$name] ?? $default;

@@ -9,26 +9,31 @@
 
 namespace PhpComp\Http\Client\Traits;
 
-use function count;
-use function str_replace;
-use function array_shift;
-use function preg_match_all;
 use function array_pop;
+use function array_shift;
+use function count;
 use function explode;
+use function preg_match_all;
+use function str_replace;
 use function ucwords;
 
 /**
  * Trait ParseRawResponseTrait
+ *
  * @package PhpComp\Http\Client\Traits
  */
 trait ParseRawResponseTrait
 {
     /**
      * The curl exec response data string. contains headers and body
+     *
      * @var string
      */
     private $rawResponse = '';
 
+    /**
+     * @var bool
+     */
     private $responseParsed = false;
 
     /**
@@ -49,7 +54,7 @@ trait ParseRawResponseTrait
         # Extract headers from response
         preg_match_all($pattern, $response, $matches);
         $headersString = array_pop($matches[0]);
-        $headers = explode("\r\n", str_replace("\r\n\r\n", '', $headersString));
+        $headers       = explode("\r\n", str_replace("\r\n\r\n", '', $headersString));
 
         // parse headers
         $this->parseResponseHeaders($headers);
@@ -62,20 +67,20 @@ trait ParseRawResponseTrait
         # Remove all headers from the response body
         $this->responseBody = str_replace($headersString, '', $response);
 
-        $this->rawResponse = '';
+        $this->rawResponse    = '';
         $this->responseParsed = true;
     }
 
     /**
      * @param array $headers
-     * [
+     *  [
      *  "HTTP/1.0 200 OK",
      *  "Accept-Ranges: bytes"
      *  "Cache-Control: no-cache"
      *  "Content-Length: 14615"
      *  "Content-Type: text/html"
      *  ...
-     * ]
+     *  ]
      */
     protected function parseResponseHeaders(array &$headers): void
     {
@@ -99,7 +104,7 @@ trait ParseRawResponseTrait
             // \preg_match('#(.*?)\:\s(.*)#', $header, $matches);
             // $this->responseHeaders[$matches[1]] = $matches[2];
             [$name, $value] = explode(': ', $header);
-            $name = ucwords($name);
+            $name                         = ucwords($name);
             $this->responseHeaders[$name] = $value;
         }
     }

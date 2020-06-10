@@ -10,6 +10,7 @@
 namespace PhpComp\Http\Client\Swoole;
 
 use PhpComp\Http\Client\AbstractClient;
+use PhpComp\Http\Client\ClientInterface;
 use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\Error\ClientException;
 use Swoole\Coroutine\Http\Client;
@@ -27,7 +28,7 @@ use function socket_strerror;
 class CoClient extends AbstractClient
 {
     /**
-     * @var \Swoole\Coroutine\Http\Client
+     * @var Client
      */
     private $client;
 
@@ -225,7 +226,7 @@ class CoClient extends AbstractClient
      * @param bool $defer
      * @return CoClient
      */
-    public function setDefer(bool $defer = true)
+    public function setDefer(bool $defer = true): ClientInterface
     {
         $this->defer = $defer;
         return $this;

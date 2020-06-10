@@ -29,7 +29,7 @@ $rules = [
     ],
     'no_unused_imports' => true,
     'return_type_declaration' => [
-        'space_before' => 'one',
+        'space_before' => 'none',
     ],
     'single_quote' => true,
     'standardize_not_equals' => true,

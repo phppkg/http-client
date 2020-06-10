@@ -10,17 +10,19 @@
 namespace PhpComp\Http\Client\Swoole;
 
 use PhpComp\Http\Client\AbstractClient;
+use PhpComp\Http\Client\ClientInterface;
 use PhpComp\Http\Client\ClientUtil;
 use Swoole\Coroutine\Http2\Client;
 use Swoole\Coroutine\Http2\Request;
+use function array_merge;
 use function class_exists;
 use function strtoupper;
-use function array_merge;
 
 /**
  * Class CoClient2 - http2 client
+ *
  * @package PhpComp\Http\Client\Swoole
- * @link https://wiki.swoole.com/wiki/page/856.html
+ * @link    https://wiki.swoole.com/wiki/page/856.html
  */
 class CoClient2 extends AbstractClient
 {
@@ -39,15 +41,22 @@ class CoClient2 extends AbstractClient
 
     /**
      * Send request to remote URL
-     * @param $url
-     * @param array $data
+     *
+     * @param        $url
+     * @param array  $data
      * @param string $method
-     * @param array $headers
-     * @param array $options
+     * @param array  $headers
+     * @param array  $options
+     *
      * @return self
      */
-    public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
-    {
+    public function request(
+        string $url,
+        $data = null,
+        string $method = self::GET,
+        array $headers = [],
+        array $options = []
+    ): ClientInterface {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
@@ -67,7 +76,7 @@ class CoClient2 extends AbstractClient
         // some client option
         $client->set([
             // 'timeout' => -1
-            'timeout' => (int)$options['timeout'],
+            'timeout'       => (int)$options['timeout'],
             'ssl_host_name' => $info['host']
         ]);
         $client->connect();
@@ -77,7 +86,7 @@ class CoClient2 extends AbstractClient
             $uri .= '?' . $info['query'];
         }
 
-        $req = new Request();
+        $req       = new Request();
         $req->path = $uri;
         $this->prepareRequest($req, $headers, $options);
 
@@ -87,7 +96,7 @@ class CoClient2 extends AbstractClient
 
         // send request
         $client->send($req);
-        $resp = $client->recv();
+        $resp               = $client->recv();
         $this->responseBody = $resp->data;
         $client->close();
 

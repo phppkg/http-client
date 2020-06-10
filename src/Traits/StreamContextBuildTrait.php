@@ -9,17 +9,18 @@
 
 namespace PhpComp\Http\Client\Traits;
 
+use InvalidArgumentException;
 use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\StreamContext;
-use InvalidArgumentException;
-use function is_resource;
-use function http_build_query;
 use function array_merge;
-use function strlen;
+use function http_build_query;
+use function is_resource;
 use function sprintf;
+use function strlen;
 
 /**
  * Trait StreamContextBuildTrait
+ *
  * @package PhpComp\Http\Client\Traits
  */
 trait StreamContextBuildTrait
@@ -31,10 +32,12 @@ trait StreamContextBuildTrait
 
     /**
      * build stream context. it's create by stream_context_create()
-     * @param string $fullUrl
-     * @param array $headers
-     * @param array $opts
+     *
+     * @param string     $fullUrl
+     * @param array      $headers
+     * @param array      $opts
      * @param mixed|null $data
+     *
      * @return resource
      */
     protected function buildStreamContext(string $fullUrl, array $headers, array $opts, $data = null)
@@ -56,7 +59,7 @@ trait StreamContextBuildTrait
             $headers['Cookie'] = http_build_query($cookies, '', '; ');
         }
 
-        $info = ClientUtil::parseUrl($fullUrl);
+        $info    = ClientUtil::parseUrl($fullUrl);
         $headers = array_merge($this->headers, $opts['headers'], $headers);
         $headers = ClientUtil::ucwordArrayKeys($headers);
 
@@ -64,8 +67,8 @@ trait StreamContextBuildTrait
             $headers['Host'] = $info['host'];
         }
 
-        $body = '';
-        $method = $this->formatAndCheckMethod($opts['method']);
+        $body          = '';
+        $method        = $this->formatAndCheckMethod($opts['method']);
         $this->fullUrl = $fullUrl;
 
         if ($data) {
@@ -80,9 +83,9 @@ trait StreamContextBuildTrait
         }
 
         $httpOptions = [
-            'method' => $method,
+            'method'  => $method,
             'timeout' => (int)$opts['timeout'], // 超时
-            'header' => $this->formatHeaders($headers),
+            'header'  => $this->formatHeaders($headers),
             'content' => $body,
         ];
 
