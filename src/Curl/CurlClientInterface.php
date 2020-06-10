@@ -20,8 +20,6 @@ interface CurlClientInterface
      * Set curl options
      *
      * @param array $options
-     *
-     * @return $this
      */
     public function setCurlOptions(array $options);
 

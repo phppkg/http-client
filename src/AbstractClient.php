@@ -330,7 +330,6 @@ abstract class AbstractClient implements ClientInterface
      * @param string $saveAs
      *
      * @return bool
-     * @throws Exception
      */
     public function download(string $url, string $saveAs): bool
     {
@@ -393,7 +392,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setCookie(string $key, $value)
+    public function setCookie(string $key, $value): ClientInterface
     {
         $this->cookies[$key] = $value;
         return $this;
@@ -676,7 +675,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    protected function resetOptions()
+    protected function resetOptions(): ClientInterface
     {
         $this->options = $this->defaultOptions;
         return $this;

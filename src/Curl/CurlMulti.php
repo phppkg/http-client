@@ -102,7 +102,12 @@ class CurlMulti // extends CurlLite
      */
     private $options;
 
-    public static function create(array $options = [])
+    /**
+     * @param array $options
+     *
+     * @return CurlMulti
+     */
+    public static function create(array $options = []): CurlMulti
     {
         return new static($options);
     }
@@ -124,7 +129,7 @@ class CurlMulti // extends CurlLite
      *
      * @return self
      */
-    public function build(array $data)
+    public function build(array $data): self
     {
         $this->mh = curl_multi_init();
 
@@ -314,7 +319,7 @@ class CurlMulti // extends CurlLite
      *
      * @return string
      */
-    protected function buildUrl(string $url, $data = null)
+    protected function buildUrl(string $url, $data = null): string
     {
         $url = trim($url);
 

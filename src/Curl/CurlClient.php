@@ -15,6 +15,7 @@ use PhpComp\Http\Client\ClientInterface;
 use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\Exception\ClientException;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
+use function array_merge;
 use function curl_close;
 use function curl_errno;
 use function curl_error;
@@ -109,9 +110,9 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     use ParseRawResponseTrait;
 
     // ssl auth type
-    const SSL_TYPE_CERT = 'cert';
+    public const SSL_TYPE_CERT = 'cert';
 
-    const SSL_TYPE_KEY = 'key';
+    public const SSL_TYPE_KEY = 'key';
 
     /**
      * Can to retry request
@@ -306,7 +307,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return $this
      */
-    public function request(string $url, $data = null, string $method = 'GET', array $headers = [], array $options = [])
+    public function request(string $url, $data = null, string $method = 'GET', array $headers = [], array $options = []): ClientInterface
     {
         if ($method = strtoupper($method)) {
             $options['method'] = $method;
@@ -381,7 +382,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         }
 
         // merge global options.
-        $options = \array_merge($this->options, $options);
+        $options = array_merge($this->options, $options);
         $method  = $this->formatAndCheckMethod($options['method']);
 
         switch ($method) {
@@ -426,12 +427,12 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         $curlOptions[CURLOPT_URL] = ClientUtil::encodeURL($url);
 
         // append http headers
-        if ($headers = \array_merge($this->headers, $options['headers'], $headers)) {
+        if ($headers = array_merge($this->headers, $options['headers'], $headers)) {
             $curlOptions[CURLOPT_HTTPHEADER] = $this->formatHeaders($headers);
         }
 
         // append http cookies
-        if ($cookies = \array_merge($this->cookies, $options['cookies'])) {
+        if ($cookies = array_merge($this->cookies, $options['cookies'])) {
             $curlOptions[CURLOPT_COOKIE] = http_build_query($cookies, '', '; ');
         }
 
@@ -480,7 +481,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     /**
      * @return $this
      */
-    public function resetOptions()
+    public function resetOptions(): ClientInterface
     {
         // $this->_curlOptions = [];
 
@@ -491,7 +492,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     /**
      * @return $this
      */
-    public function resetResponse()
+    public function resetResponse(): ClientInterface
     {
         $this->rawResponse    = '';
         $this->responseParsed = false;
@@ -535,7 +536,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return $this
      */
-    public function setUserAuth(string $user, string $pwd = '', int $authType = CURLAUTH_BASIC)
+    public function setUserAuth(string $user, string $pwd = '', int $authType = CURLAUTH_BASIC): ClientInterface
     {
         $this->_curlOptions[CURLOPT_HTTPAUTH] = $authType;
         $this->_curlOptions[CURLOPT_USERPWD]  = "$user:$pwd";
@@ -551,7 +552,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return $this
      */
-    public function setSSLAuth(string $pwd, string $file, string $authType = self::SSL_TYPE_CERT)
+    public function setSSLAuth(string $pwd, string $file, string $authType = self::SSL_TYPE_CERT): ClientInterface
     {
         if ($authType !== self::SSL_TYPE_CERT && $authType !== self::SSL_TYPE_KEY) {
             throw new InvalidArgumentException('The SSL auth type only allow: cert|key');

@@ -53,7 +53,6 @@ class CoClient extends AbstractClient
      * @param string $saveAs
      *
      * @return bool
-     * @throws Exception
      */
     public function download(string $url, string $saveAs): bool
     {
