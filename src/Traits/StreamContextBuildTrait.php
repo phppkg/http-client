@@ -67,8 +67,9 @@ trait StreamContextBuildTrait
             $headers['Host'] = $info['host'];
         }
 
-        $body          = '';
-        $method        = $this->formatAndCheckMethod($opts['method']);
+        $body   = '';
+        $method = $this->formatAndCheckMethod($opts['method']);
+
         $this->fullUrl = $fullUrl;
 
         if ($data) {

@@ -9,15 +9,16 @@
 
 namespace PhpComp\Http\Client;
 
+use InvalidArgumentException;
 use PhpComp\Http\Client\Curl\CurlClient;
 use PhpComp\Http\Client\Swoole\CoClient;
 use PhpComp\Http\Client\Swoole\CoClient2;
 use RuntimeException;
-use InvalidArgumentException;
 use function method_exists;
 
 /**
  * Class Client
+ *
  * @package PhpComp\Http\Client
  * @method static ClientInterface get(string $url, $params = null, array $headers = [], array $options = [])
  * @method static ClientInterface delete(string $url, $params = null, array $headers = [], array $options = [])
@@ -32,16 +33,17 @@ class Client
 {
     /**
      * supported drivers
+     *
      * @var ClientInterface[]
      */
     private static $drivers = [
-        'co' => CoClient::class,
-        'curl' => CurlClient::class,
+        'co'     => CoClient::class,
+        'curl'   => CurlClient::class,
         'stream' => StreamClient::class,
-        'fsock' => FSockClient::class,
-        'fopen' => FOpenClient::class,
-        'file' => FileClient::class,
-        'co2' => CoClient2::class,
+        'fsock'  => FSockClient::class,
+        'fopen'  => FOpenClient::class,
+        'file'   => FileClient::class,
+        'co2'    => CoClient2::class,
     ];
 
     /**
@@ -51,16 +53,18 @@ class Client
 
     /**
      * config data for $defaultDriver
+     *
      * @var array
      */
     private static $defaultConfig = [];
 
     /**
      * @param array $config
-     * [
+     *  [
      *  'driver' => 'curl', // curl, stream, fsock, fopen, file, co, co2
      *  // ...
-     * ]
+     *  ]
+     *
      * @return ClientInterface
      */
     public static function factory(array $config): ClientInterface
@@ -79,8 +83,8 @@ class Client
             unset($config['driver']);
         }
 
-        if ($class === '') {
-            throw new RuntimeException('no driver is available!');
+        if (!$class) {
+            throw new RuntimeException('no driver is available in current system!');
         }
 
         return $class::create($config);
@@ -112,7 +116,8 @@ class Client
 
     /**
      * @param string $method
-     * @param array $args
+     * @param array  $args
+     *
      * @return ClientInterface
      */
     public static function __callStatic(string $method, array $args)

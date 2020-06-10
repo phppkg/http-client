@@ -1,7 +1,7 @@
 {
   "name": "php-comp/http-client",
   "type": "library",
-  "description": "some useful http client library of the php",
+  "description": "an simple http client library of the php",
   "keywords": [
     "library",
     "tool",
@@ -18,7 +18,7 @@
     }
   ],
   "require": {
-    "php": ">7.0.0",
+    "php": ">7.1.1",
     "psr/http-client": "^1.0"
   },
   "autoload": {
@@ -28,11 +28,5 @@
   },
   "suggest": {
     "php-comp/http-message": "Very lightweight PSR-7 implements http message component"
-  },
-  "repositories": {
-    "packagist": {
-      "type": "composer",
-      "url": "https://packagist.phpcomposer.com"
-    }
   }
 }

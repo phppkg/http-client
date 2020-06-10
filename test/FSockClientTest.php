@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Class FSockClientTest
- * @covers \PhpComp\Http\Client\FSockClient
+ *
  * @package PhpComp\Http\Client\Test
  */
 class FSockClientTest extends TestCase

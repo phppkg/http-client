@@ -66,8 +66,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param null   $params
      * @param array  $headers
      * @param array  $options
+     *
+     * @return ClientInterface
      */
-    public function get(string $url, $params = null, array $headers = [], array $options = []);
+    public function get(string $url, $params = null, array $headers = [], array $options = []): ClientInterface;
 
     /**
      * POST
@@ -76,8 +78,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param mixed  $data
      * @param array  $headers
      * @param array  $options
+     *
+     * @return ClientInterface
      */
-    public function post(string $url, $data = null, array $headers = [], array $options = []);
+    public function post(string $url, $data = null, array $headers = [], array $options = []): ClientInterface;
 
     /**
      * PUT
@@ -86,8 +90,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param mixed  $data
      * @param array  $headers
      * @param array  $options
+     *
+     * @return ClientInterface
      */
-    public function put(string $url, $data = null, array $headers = [], array $options = []);
+    public function put(string $url, $data = null, array $headers = [], array $options = []): ClientInterface;
 
     /**
      * PATCH
@@ -96,8 +102,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param mixed  $data
      * @param array  $headers
      * @param array  $options
+     *
+     * @return ClientInterface
      */
-    public function patch(string $url, $data = null, array $headers = [], array $options = []);
+    public function patch(string $url, $data = null, array $headers = [], array $options = []): ClientInterface;
 
     /**
      * DELETE
@@ -106,8 +114,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param null   $params
      * @param array  $headers
      * @param array  $options
+     *
+     * @return ClientInterface
      */
-    public function delete(string $url, $params = null, array $headers = [], array $options = []);
+    public function delete(string $url, $params = null, array $headers = [], array $options = []): ClientInterface;
 
     /**
      * OPTIONS
@@ -116,8 +126,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param null   $params
      * @param array  $headers
      * @param array  $options
+     *
+     * @return ClientInterface
      */
-    public function options(string $url, $params = null, array $headers = [], array $options = []);
+    public function options(string $url, $params = null, array $headers = [], array $options = []): ClientInterface;
 
     /**
      * HEAD
@@ -126,8 +138,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param array  $params
      * @param array  $headers
      * @param array  $options
+     *
+     * @return ClientInterface
      */
-    public function head(string $url, array $params = [], array $headers = [], array $options = []);
+    public function head(string $url, array $params = [], array $headers = [], array $options = []): ClientInterface;
 
     /**
      * TRACE
@@ -136,17 +150,19 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param array  $params
      * @param array  $headers
      * @param array  $options
+     *
+     * @return ClientInterface
      */
-    public function trace(string $url, array $params = [], array $headers = [], array $options = []);
+    public function trace(string $url, array $params = [], array $headers = [], array $options = []): ClientInterface;
 
     /**
      * Send request to remote URL
      *
-     * @param string $url
+     * @param string            $url
      * @param array|string|null $data
-     * @param string $method
-     * @param array $headers
-     * @param array $options
+     * @param string            $method
+     * @param array             $headers
+     * @param array             $options
      *
      * @return self
      */

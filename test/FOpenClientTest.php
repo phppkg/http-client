@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Class FOpenClientTest
- * @covers \PhpComp\Http\Client\FOpenClient
+ *
  * @package PhpComp\Http\Client\Test
  */
 class FOpenClientTest extends TestCase

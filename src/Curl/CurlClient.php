@@ -13,7 +13,7 @@ use InvalidArgumentException;
 use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientInterface;
 use PhpComp\Http\Client\ClientUtil;
-use PhpComp\Http\Client\Error\ClientException;
+use PhpComp\Http\Client\Exception\ClientException;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
 use function curl_close;
 use function curl_errno;

@@ -7,18 +7,19 @@
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client\Error;
+namespace PhpComp\Http\Client\Exception;
 
-use Psr\Http\Client\RequestExceptionInterface;
+use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 use RuntimeException;
 use Throwable;
 
 /**
  * Class RequestException
- * @package PhpComp\Http\Client\Error
+ *
+ * @package PhpComp\Http\Client\Exception
  */
-class RequestException extends RuntimeException implements RequestExceptionInterface
+class NetworkException extends RuntimeException implements NetworkExceptionInterface
 {
     /**
      * @var RequestInterface
@@ -27,13 +28,18 @@ class RequestException extends RuntimeException implements RequestExceptionInter
 
     /**
      * NetworkException constructor.
-     * @param string $message
-     * @param int $code
-     * @param Throwable|null $previous
+     *
+     * @param string                $message
+     * @param int                   $code
+     * @param Throwable|null        $previous
      * @param RequestInterface|null $request
      */
-    public function __construct(string $message = '', int $code = 0, Throwable $previous = null, RequestInterface $request = null)
-    {
+    public function __construct(
+        string $message = '',
+        int $code = 0,
+        Throwable $previous = null,
+        RequestInterface $request = null
+    ) {
         $this->request = $request;
         parent::__construct($message, $code, $previous);
     }

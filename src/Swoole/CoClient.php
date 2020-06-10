@@ -9,21 +9,22 @@
 
 namespace PhpComp\Http\Client\Swoole;
 
+use Exception;
 use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientInterface;
 use PhpComp\Http\Client\ClientUtil;
-use PhpComp\Http\Client\Error\ClientException;
+use PhpComp\Http\Client\Exception\ClientException;
 use Swoole\Coroutine\Http\Client;
-use Exception;
-use function class_exists;
-use function strtoupper;
 use function array_merge;
+use function class_exists;
 use function socket_strerror;
+use function strtoupper;
 
 /**
  * Class CoClient
+ *
  * @package PhpComp\Http\Client\Swoole
- * @link https://wiki.swoole.com/wiki/page/p-coroutine_http_client.html
+ * @link    https://wiki.swoole.com/wiki/page/p-coroutine_http_client.html
  */
 class CoClient extends AbstractClient
 {
@@ -47,8 +48,10 @@ class CoClient extends AbstractClient
 
     /**
      * File download and save
+     *
      * @param string $url
      * @param string $saveAs
+     *
      * @return bool
      * @throws Exception
      */
@@ -70,15 +73,22 @@ class CoClient extends AbstractClient
 
     /**
      * Send request to remote URL
-     * @param $url
-     * @param array $data
+     *
+     * @param        $url
+     * @param array  $data
      * @param string $method
-     * @param array $headers
-     * @param array $options
+     * @param array  $headers
+     * @param array  $options
+     *
      * @return $this
      */
-    public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
-    {
+    public function request(
+        string $url,
+        $data = null,
+        string $method = self::GET,
+        array $headers = [],
+        array $options = []
+    ): ClientInterface {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
@@ -117,9 +127,10 @@ class CoClient extends AbstractClient
 
     /**
      * only available on defer is true
+     *
      * @return $this
      */
-    public function receive()
+    public function receive(): self
     {
         if ($this->defer && $this->client !== null) {
             // receive response
@@ -130,6 +141,11 @@ class CoClient extends AbstractClient
         return $this;
     }
 
+    /**
+     * @param array $info
+     *
+     * @return Client
+     */
     private function newSwooleClient(array $info): Client
     {
         // enable SSL verify
@@ -144,10 +160,15 @@ class CoClient extends AbstractClient
         return new Client($info['host'], $info['port'], $sslVerify);
     }
 
+    /**
+     * @param Client $client
+     * @param array  $headers
+     * @param array  $options
+     */
     private function prepareClient(Client $client, array $headers, array $options): void
     {
         // merge global options data.
-        $options = array_merge($this->options, $options);
+        $options   = array_merge($this->options, $options);
         $coOptions = [
             // 'timeout' => -1
             'timeout' => (int)$options['timeout'],
@@ -194,6 +215,9 @@ class CoClient extends AbstractClient
         }
     }
 
+    /**
+     * @param Client $client
+     */
     private function collectResponse(Client $client): void
     {
         // check error
@@ -201,8 +225,8 @@ class CoClient extends AbstractClient
             throw new ClientException(socket_strerror($client->errCode), $errno);
         }
 
-        $this->statusCode = $client->statusCode;
-        $this->responseBody = $client->body;
+        $this->statusCode      = $client->statusCode;
+        $this->responseBody    = $client->body;
         $this->responseHeaders = $client->headers;
     }
 
@@ -224,6 +248,7 @@ class CoClient extends AbstractClient
 
     /**
      * @param bool $defer
+     *
      * @return CoClient
      */
     public function setDefer(bool $defer = true): ClientInterface

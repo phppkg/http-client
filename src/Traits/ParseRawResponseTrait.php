@@ -48,23 +48,23 @@ trait ParseRawResponseTrait
 
         $response = $this->rawResponse;
 
-        # Headers regex
+        // Headers regex
         $pattern = '#HTTP/\d\.\d.*?$.*?\r\n\r\n#ims';
 
-        # Extract headers from response
+        // Extract headers from response
         preg_match_all($pattern, $response, $matches);
         $headersString = array_pop($matches[0]);
-        $headers       = explode("\r\n", str_replace("\r\n\r\n", '', $headersString));
 
+        $headers = explode("\r\n", str_replace("\r\n\r\n", '', $headersString));
         // parse headers
         $this->parseResponseHeaders($headers);
 
-        # Include all received headers in the $headers_string
+        // Include all received headers in the $headers_string
         while (count($matches[0])) {
             $headersString = array_pop($matches[0]) . $headersString;
         }
 
-        # Remove all headers from the response body
+        // Remove all headers from the response body
         $this->responseBody = str_replace($headersString, '', $response);
 
         $this->rawResponse    = '';
@@ -104,7 +104,9 @@ trait ParseRawResponseTrait
             // \preg_match('#(.*?)\:\s(.*)#', $header, $matches);
             // $this->responseHeaders[$matches[1]] = $matches[2];
             [$name, $value] = explode(': ', $header);
-            $name                         = ucwords($name);
+
+            $name = ucwords($name);
+
             $this->responseHeaders[$name] = $value;
         }
     }

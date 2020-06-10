@@ -9,17 +9,18 @@
 
 namespace PhpComp\Http\Client;
 
-use PhpComp\Http\Client\Error\ClientException;
+use PhpComp\Http\Client\Exception\ClientException;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
 use PhpComp\Http\Client\Traits\StreamContextBuildTrait;
 use Throwable;
-use function function_exists;
-use function strtoupper;
 use function array_merge;
 use function file_get_contents;
+use function function_exists;
+use function strtoupper;
 
 /**
  * Class FileClient - powered by func file_get_contents()
+ *
  * @package PhpComp\Http\Client
  */
 class FileClient extends AbstractClient
@@ -37,8 +38,13 @@ class FileClient extends AbstractClient
     /**
      * {@inheritdoc}
      */
-    public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
-    {
+    public function request(
+        string $url,
+        $data = null,
+        string $method = self::GET,
+        array $headers = [],
+        array $options = []
+    ): ClientInterface {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
@@ -67,6 +73,7 @@ class FileClient extends AbstractClient
         /**
          * collect headers data
          * $http_response_header will auto save HTTP response headers data.
+         *
          * @see https://secure.php.net/manual/zh/reserved.variables.httpresponseheader.php
          */
         if ($http_response_header !== null) {

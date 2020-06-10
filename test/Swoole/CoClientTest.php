@@ -12,12 +12,13 @@ namespace PhpComp\Http\Client\Test\Swoole;
 use PhpComp\Http\Client\Swoole\CoClient;
 use PHPUnit\Framework\TestCase;
 use Swoole\Timer;
-use function swoole_event_exit;
 use function go;
+use function swoole_event_exit;
 
 /**
  * Class CoClientTest
- * @covers \PhpComp\Http\Client\Swoole\CoClient
+ *
+ * @covers  \PhpComp\Http\Client\Swoole\CoClient
  * @package PhpComp\Http\Client\Test\Swoole
  */
 class CoClientTest extends TestCase

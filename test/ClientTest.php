@@ -9,21 +9,21 @@
 
 namespace PhpComp\Http\Client\Test;
 
-use PHPUnit\Framework\TestCase;
 use PhpComp\Http\Client\Client;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class ClientTest
- * @covers \PhpComp\Http\Client\Client
+ *
  * @package PhpComp\Http\Client\Test
  */
 class ClientTest extends TestCase
 {
     public function testGet(): void
     {
-        $url = 'http://www.baidu.com';
+        $url    = 'http://www.baidu.com';
         $client = Client::factory([
-            'driver' => 'fsock',
+            'driver'  => 'fsock',
             'baseUrl' => $url,
         ]);
         $this->assertEquals('fsock', $client->getDriverName());

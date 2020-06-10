@@ -10,27 +10,30 @@
 namespace PhpComp\Http\Client\Traits;
 
 use PhpComp\Http\Client\ClientUtil;
-use function http_build_query;
 use function array_merge;
-use function strlen;
-use function sprintf;
+use function http_build_query;
 use function implode;
+use function sprintf;
+use function strlen;
 
 /**
  * Trait BuildRawHttpRequestTrait
+ *
  * @package PhpComp\Http\Client\Traits
  */
 trait BuildRawHttpRequestTrait
 {
     /**
      * build raw HTTP request data string
+     *
      * @param array $info
      * @param array $headers
      * @param array $opts
-     * @param $data
+     * @param mixed $data
+     *
      * @return string
      */
-    protected function buildRawHttpData(array $info, array $headers, array $opts, $data)
+    protected function buildRawHttpData(array $info, array $headers, array $opts, $data): string
     {
         $uri = $info['path'];
         if ($info['query']) {
@@ -75,12 +78,6 @@ trait BuildRawHttpRequestTrait
         $fmtHeaders = $this->formatHeaders($headers);
 
         // eg. "GET / HTTP/1.1\r\nHost: www.example.com\r\n\r\n"
-        return sprintf(
-            "%s %s HTTP/1.1\r\n%s\r\n\r\n%s",
-            $method,
-            $uri,
-            implode("\r\n", $fmtHeaders),
-            $body
-        );
+        return sprintf("%s %s HTTP/1.1\r\n%s\r\n\r\n%s", $method, $uri, implode("\r\n", $fmtHeaders), $body);
     }
 }

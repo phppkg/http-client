@@ -11,9 +11,9 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('Asia/Shanghai');
 
 $inhereDir = dirname(__DIR__, 2);
-$map = [
+$map       = [
     'PhpComp\Http\Client\Test\\' => __DIR__,
-    'PhpComp\Http\Client\\' => dirname(__DIR__) . '/src',
+    'PhpComp\Http\Client\\'      => dirname(__DIR__) . '/src',
 ];
 
 spl_autoload_register(function ($class) use ($map): void {

@@ -9,28 +9,29 @@
 
 namespace PhpComp\Http\Client;
 
-use PhpComp\Http\Client\Error\ClientException;
-use PhpComp\Http\Client\Error\RequestException;
+use InvalidArgumentException;
+use PhpComp\Http\Client\Exception\ClientException;
+use PhpComp\Http\Client\Exception\RequestException;
 use PhpComp\Http\Client\Traits\BuildRawHttpRequestTrait;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
-use InvalidArgumentException;
-use function function_exists;
-use function is_resource;
-use function strtoupper;
 use function array_merge;
-use function sprintf;
-use function stream_socket_client;
-use function stream_set_timeout;
-use function fwrite;
-use function stream_get_meta_data;
+use function fclose;
 use function feof;
 use function fread;
-use function fclose;
+use function function_exists;
+use function fwrite;
+use function is_resource;
+use function sprintf;
+use function stream_get_meta_data;
+use function stream_set_timeout;
+use function stream_socket_client;
+use function strtoupper;
 use const STREAM_CLIENT_CONNECT;
 use const STREAM_CLIENT_PERSISTENT;
 
 /**
  * Class StreamClient
+ *
  * @package PhpComp\Http\Client
  */
 class StreamClient extends AbstractClient
@@ -64,7 +65,9 @@ class StreamClient extends AbstractClient
 
     /**
      * stream context. it's create by stream_context_create()
+     *
      * @param array $opts
+     *
      * @return mixed|resource
      */
     protected function buildStreamContext(array $opts)
@@ -80,9 +83,9 @@ class StreamClient extends AbstractClient
             $context = StreamContext::create();
         }
 
-        $method = $this->formatAndCheckMethod($opts['method']);
+        $method      = $this->formatAndCheckMethod($opts['method']);
         $httpOptions = [
-            'method' => $method,
+            'method'  => $method,
             'timeout' => (int)$opts['timeout'],
             // 'content' => $body,
         ];
@@ -105,15 +108,22 @@ class StreamClient extends AbstractClient
 
     /**
      * Send request to remote URL
-     * @param $url
-     * @param array $data
+     *
+     * @param        $url
+     * @param array  $data
      * @param string $method
-     * @param array $headers
-     * @param array $options
+     * @param array  $headers
+     * @param array  $options
+     *
      * @return self
      */
-    public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
-    {
+    public function request(
+        string $url,
+        $data = null,
+        string $method = self::GET,
+        array $headers = [],
+        array $options = []
+    ): ClientInterface {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
@@ -123,11 +133,11 @@ class StreamClient extends AbstractClient
 
         // get request url info
         $info = ClientUtil::parseUrl($this->buildFullUrl($url));
-        $ctx = $this->buildStreamContext($options);
+        $ctx  = $this->buildStreamContext($options);
 
-        $timeout = (int)$options['timeout'];
+        $timeout   = (int)$options['timeout'];
         $socketUrl = sprintf('tcp://%s:%d', $info['host'], (int)$info['port']);
-        $flags = STREAM_CLIENT_CONNECT;
+        $flags     = STREAM_CLIENT_CONNECT;
 
         if (isset($options['persistent']) && $options['persistent']) {
             $flags = STREAM_CLIENT_PERSISTENT;
@@ -172,9 +182,9 @@ class StreamClient extends AbstractClient
     /**
      * @return $this
      */
-    public function resetResponse()
+    public function resetResponse(): ClientInterface
     {
-        $this->rawResponse = '';
+        $this->rawResponse    = '';
         $this->responseParsed = false;
 
         parent::resetResponse();

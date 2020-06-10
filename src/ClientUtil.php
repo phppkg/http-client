@@ -9,22 +9,24 @@
 
 namespace PhpComp\Http\Client;
 
-use PhpComp\Http\Client\Error\ClientException;
-use function ucwords;
-use function parse_url;
+use PhpComp\Http\Client\Exception\ClientException;
 use function array_merge;
-use function trim;
-use function urldecode;
-use function rawurlencode;
-use function mb_convert_encoding;
-use function str_replace;
-use function is_scalar;
-use function stripos;
-use function json_encode;
 use function http_build_query;
+use function is_scalar;
+use function json_encode;
+use function mb_convert_encoding;
+use function parse_url;
+use function rawurlencode;
+use function str_replace;
+use function stripos;
+use function strpos;
+use function trim;
+use function ucwords;
+use function urldecode;
 
 /**
  * Class ClientUtil
+ *
  * @package PhpComp\Http\Client
  */
 class ClientUtil
@@ -32,6 +34,7 @@ class ClientUtil
     /**
      * @param array $src
      * @param array $append
+     *
      * @return array
      */
     public static function mergeArray(array $src, array $append): array
@@ -53,6 +56,7 @@ class ClientUtil
 
     /**
      * @param array $arr
+     *
      * @return array
      */
     public static function ucwordArrayKeys(array $arr): array
@@ -67,15 +71,17 @@ class ClientUtil
 
     /**
      * @param string $url
+     *
      * @return bool
      */
     public static function isFullURL(string $url): bool
     {
-        return 0 === \strpos($url, 'http:') || 0 === \strpos($url, 'https:') || 0 === strpos($url, '//');
+        return 0 === strpos($url, 'http:') || 0 === strpos($url, 'https:') || 0 === strpos($url, '//');
     }
 
     /**
      * @param string $url
+     *
      * @return array
      */
     public static function parseUrl(string $url): array
@@ -87,24 +93,25 @@ class ClientUtil
 
         $info = array_merge([
             'scheme' => 'http',
-            'host' => '',
-            'port' => 80,
-            'path' => '/',
-            'query' => '',
+            'host'   => '',
+            'port'   => 80,
+            'path'   => '/',
+            'query'  => '',
         ], $info);
 
         return $info;
     }
 
     /**
-     * @param string $url
+     * @param string       $url
      * @param array|object $data
+     *
      * @return string
      */
-    public static function buildURL(string $url, $data = null)
+    public static function buildURL(string $url, $data = null): string
     {
         if ($data && ($query = http_build_query($data))) {
-            $url .= (\strpos($url, '?') ? '&' : '?') . $query;
+            $url .= (strpos($url, '?') ? '&' : '?') . $query;
         }
 
         return $url;
@@ -158,7 +165,9 @@ class ClientUtil
      * //ftp://ud03:password@www.xxx.net/%C3%A4%C2%B8%C2%AD%C3%A6%C2%96%C2%87/%C3%A4%C2%B8%C2%AD%C3%A6%C2%96%C2%87.rar
      * $url2 =  urldecode($url);
      * echo $url1.PHP_EOL.$url2;
-     * @param  string $url [description]
+     *
+     * @param string $url [description]
+     *
      * @return mixed|string [type]      [description]
      */
     public static function encodeURL(string $url)
@@ -169,15 +178,16 @@ class ClientUtil
 
         // 若已被编码的url，将被解码，再继续重新编码
         $url = urldecode($url);
-        $encodeUrl = rawurlencode(mb_convert_encoding($url, 'utf-8'));
 
+        $encodeUrl = rawurlencode(mb_convert_encoding($url, 'utf-8'));
         // $url  = rawurlencode($url);
         return str_replace(self::$entities, self::$replacements, $encodeUrl);
     }
 
     /**
-     * @param array $headers
+     * @param array               $headers
      * @param string|array|object $data body data
+     *
      * @return string
      */
     public static function buildBodyByContentType(array &$headers, $data): string

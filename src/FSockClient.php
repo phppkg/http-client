@@ -9,24 +9,25 @@
 
 namespace PhpComp\Http\Client;
 
-use PhpComp\Http\Client\Error\ClientException;
-use PhpComp\Http\Client\Error\RequestException;
+use PhpComp\Http\Client\Exception\ClientException;
+use PhpComp\Http\Client\Exception\RequestException;
 use PhpComp\Http\Client\Traits\BuildRawHttpRequestTrait;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
-use function function_exists;
-use function strtoupper;
 use function array_merge;
-use function pfsockopen;
-use function fsockopen;
-use function stream_set_timeout;
-use function fwrite;
+use function fclose;
 use function feof;
 use function fread;
+use function fsockopen;
+use function function_exists;
+use function fwrite;
+use function pfsockopen;
 use function stream_get_meta_data;
-use function fclose;
+use function stream_set_timeout;
+use function strtoupper;
 
 /**
  * Class FSockClient - powered by func fsockopen()
+ *
  * @package PhpComp\Http\Client
  */
 class FSockClient extends AbstractClient
@@ -60,15 +61,22 @@ class FSockClient extends AbstractClient
 
     /**
      * Send request to remote URL
-     * @param $url
-     * @param array $data
+     *
+     * @param        $url
+     * @param array  $data
      * @param string $method
-     * @param array $headers
-     * @param array $options
+     * @param array  $headers
+     * @param array  $options
+     *
      * @return self
      */
-    public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
-    {
+    public function request(
+        string $url,
+        $data = null,
+        string $method = self::GET,
+        array $headers = [],
+        array $options = []
+    ): ClientInterface {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
@@ -121,7 +129,7 @@ class FSockClient extends AbstractClient
     /**
      * @return $this
      */
-    public function resetResponse()
+    public function resetResponse(): ClientInterface
     {
         $this->rawResponse = '';
         $this->responseParsed = false;

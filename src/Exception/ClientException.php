@@ -7,14 +7,15 @@
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client\Error;
+namespace PhpComp\Http\Client\Exception;
 
 use Psr\Http\Client\ClientExceptionInterface;
 use RuntimeException;
 
 /**
  * Class ClientException
- * @package PhpComp\Http\Client\Error
+ *
+ * @package PhpComp\Http\Client\Exception
  */
 class ClientException extends RuntimeException implements ClientExceptionInterface
 {

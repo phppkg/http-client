@@ -86,7 +86,8 @@ class CoClient2 extends AbstractClient
             $uri .= '?' . $info['query'];
         }
 
-        $req       = new Request();
+        $req = new Request();
+
         $req->path = $uri;
         $this->prepareRequest($req, $headers, $options);
 
@@ -96,7 +97,9 @@ class CoClient2 extends AbstractClient
 
         // send request
         $client->send($req);
-        $resp               = $client->recv();
+
+        $resp = $client->recv();
+
         $this->responseBody = $resp->data;
         $client->close();
 

@@ -9,22 +9,23 @@
 
 namespace PhpComp\Http\Client;
 
-use PhpComp\Http\Client\Error\ClientException;
+use PhpComp\Http\Client\Exception\ClientException;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
 use PhpComp\Http\Client\Traits\StreamContextBuildTrait;
 use Throwable;
-use function function_exists;
-use function strtoupper;
 use function array_merge;
-use function fopen;
-use function stream_set_timeout;
-use function feof;
-use function fread;
-use function stream_get_meta_data;
 use function fclose;
+use function feof;
+use function fopen;
+use function fread;
+use function function_exists;
+use function stream_get_meta_data;
+use function stream_set_timeout;
+use function strtoupper;
 
 /**
  * Class FOpenClient - powered by func fopen()
+ *
  * @package PhpComp\Http\Client
  */
 class FOpenClient extends AbstractClient
@@ -36,6 +37,7 @@ class FOpenClient extends AbstractClient
      * fopen()
      * fsockopen()
      * stream_socket_client()
+     *
      * @var resource
      */
     protected $handle;
@@ -69,15 +71,22 @@ class FOpenClient extends AbstractClient
 
     /**
      * Send request to remote URL
-     * @param $url
-     * @param array $data
+     *
+     * @param        $url
+     * @param array  $data
      * @param string $method
-     * @param array $headers
-     * @param array $options
+     * @param array  $headers
+     * @param array  $options
+     *
      * @return self
      */
-    public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
-    {
+    public function request(
+        string $url,
+        $data = null,
+        string $method = self::GET,
+        array $headers = [],
+        array $options = []
+    ): ClientInterface {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
@@ -89,6 +98,7 @@ class FOpenClient extends AbstractClient
 
         try {
             $ctx = $this->buildStreamContext($url, $headers, $options, $data);
+
             $fullUrl = ClientUtil::encodeURL($this->fullUrl);
             // send request
             $this->handle = fopen($fullUrl, 'rb', false, $ctx);

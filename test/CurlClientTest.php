@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Class CurlClientTest
- * @covers \PhpComp\Http\Client\Curl\CurlClient
+ *
  * @package PhpComp\Http\Client\Test
  */
 class CurlClientTest extends TestCase
@@ -23,10 +23,9 @@ class CurlClientTest extends TestCase
     {
         // http
         $c = CurlClient::create();
-        $c
-            ->decodeGzip()
+        $c->decodeGzip()
             // ->onlyReturnBody()
-            ->get('http://www.baidu.com');
+          ->get('http://www.baidu.com');
 
         $this->assertFalse($c->isError());
         $this->assertEquals(200, $c->getStatusCode());
@@ -46,10 +45,10 @@ class CurlClientTest extends TestCase
 
     public function testDownload(): void
     {
-        $c = CurlClient::create();
-        $url = 'https://github.com/php-comp/http-client/archive/master.zip';
+        $c    = CurlClient::create();
+        $url  = 'https://github.com/php-comp/http-client/archive/master.zip';
         $file = __DIR__ . '/down-test.zip';
-        $ok = $c->download($url, $file);
+        $ok   = $c->download($url, $file);
 
         $this->assertTrue($ok);
         $this->assertFileExists($file);
