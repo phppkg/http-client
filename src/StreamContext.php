@@ -1,12 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018-11-24
- * Time: 14:39
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client;
+
+use function stream_context_create;
+use function stream_context_set_option;
+use function array_merge;
+use function stream_context_get_options;
+use function stream_context_get_params;
 
 /**
  * Class StreamContext
@@ -27,7 +34,7 @@ class StreamContext
      */
     public static function create(array $options = [], array $params = [])
     {
-        return \stream_context_create($options, $params);
+        return stream_context_create($options, $params);
     }
 
     /**
@@ -38,9 +45,9 @@ class StreamContext
      *  'ssl' => [], // please {@see StreamContext::createSSLOptions}
      * ]
      */
-    public static function setOptions($ctx, array $options)
+    public static function setOptions($ctx, array $options): void
     {
-        \stream_context_set_option($ctx, $options);
+        stream_context_set_option($ctx, $options);
     }
 
     /**
@@ -51,10 +58,10 @@ class StreamContext
      *  ...
      * ]
      */
-    public static function setHTTPOptions($ctx, array $options)
+    public static function setHTTPOptions($ctx, array $options): void
     {
         foreach ($options as $option => $value) {
-            \stream_context_set_option($ctx, 'http', $option, $value);
+            stream_context_set_option($ctx, 'http', $option, $value);
         }
     }
 
@@ -66,10 +73,10 @@ class StreamContext
      *  ...
      * ]
      */
-    public static function setSSLOptions($ctx, array $options)
+    public static function setSSLOptions($ctx, array $options): void
     {
         foreach ($options as $option => $value) {
-            \stream_context_set_option($ctx, 'ssl', $option, $value);
+            stream_context_set_option($ctx, 'ssl', $option, $value);
         }
     }
 
@@ -82,7 +89,7 @@ class StreamContext
      */
     public static function createHTTPOptions(array $options, bool $addWrapper = true): array
     {
-        $options = \array_merge([
+        $options = array_merge([
             // 远程服务器支持的 GET，POST 或其它 HTTP 方法
             'method' => 'GET',
             // 请求期间发送的额外 header 。(string|array)
@@ -117,7 +124,6 @@ class StreamContext
         return $options;
     }
 
-
     /**
      * SSL 上下文选项 - ssl:// 和 tls:// 传输协议上下文选项清单
      * @link https://secure.php.net/manual/zh/context.ssl.php
@@ -129,7 +135,7 @@ class StreamContext
      */
     public static function createSSLOptions(array $options, bool $addWrapper = true): array
     {
-        $options = \array_merge([
+        $options = array_merge([
             // 要连接的服务器名称。如果未设置，那么服务器名称将根据打开 SSL 流的主机名称猜测得出。
             'peer_name' => '',
             // 是否需要验证 SSL 证书
@@ -174,7 +180,7 @@ class StreamContext
      */
     public static function getOptions($ctxOrStream): array
     {
-        return \stream_context_get_options($ctxOrStream);
+        return stream_context_get_options($ctxOrStream);
     }
 
     /**
@@ -183,6 +189,6 @@ class StreamContext
      */
     public static function getParams($ctxOrStream): array
     {
-        return \stream_context_get_params($ctxOrStream);
+        return stream_context_get_params($ctxOrStream);
     }
 }

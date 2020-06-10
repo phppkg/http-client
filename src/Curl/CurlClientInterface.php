@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2017-03-09
- * Time: 13:14
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Curl;

@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018-11-23
- * Time: 16:54
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Test;
@@ -18,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 class StreamClientTest extends TestCase
 {
-    public function testGet()
+    public function testGet(): void
     {
         $c = StreamClient::create();
         $c->get('http://www.baidu.com');

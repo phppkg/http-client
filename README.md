@@ -1,4 +1,4 @@
-# php http client 
+# HTTP Client 
 
 [![License](https://img.shields.io/packagist/l/php-comp/http-client.svg?style=flat-square)](LICENSE)
 [![Php Version](https://img.shields.io/badge/php-%3E=7.0-brightgreen.svg?maxAge=2592000)](https://packagist.org/packages/php-comp/http-client)

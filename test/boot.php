@@ -1,6 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * phpunit --bootstrap test/boot.php test
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 error_reporting(E_ALL | E_STRICT);
@@ -12,7 +16,7 @@ $map = [
     'PhpComp\Http\Client\\' => dirname(__DIR__) . '/src',
 ];
 
-spl_autoload_register(function ($class) use ($map) {
+spl_autoload_register(function ($class) use ($map): void {
     foreach ($map as $np => $dir) {
         if (0 === strpos($class, $np)) {
             $path = str_replace('\\', '/', substr($class, strlen($np)));
@@ -30,7 +34,7 @@ if (file_exists($file = dirname(__DIR__) . '/vendor/autoload.php')) {
     require $file;
 }
 
-function my_include_file($file)
+function my_include_file($file): void
 {
     include $file;
 }

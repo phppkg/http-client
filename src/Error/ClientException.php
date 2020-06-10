@@ -1,19 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018/11/22
- * Time: 2:01 PM
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Error;
 
 use Psr\Http\Client\ClientExceptionInterface;
+use RuntimeException;
 
 /**
  * Class ClientException
  * @package PhpComp\Http\Client\Error
  */
-class ClientException extends \RuntimeException implements ClientExceptionInterface
+class ClientException extends RuntimeException implements ClientExceptionInterface
 {
 }

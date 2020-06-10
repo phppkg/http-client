@@ -1,14 +1,50 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2017/5/5
- * Time: 下午9:17
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Curl;
 
 use PhpComp\Http\Client\ClientUtil;
+use RuntimeException;
+use function curl_multi_init;
+use function curl_multi_add_handle;
+use function curl_multi_select;
+use function usleep;
+use function curl_multi_exec;
+use function curl_multi_remove_handle;
+use function curl_errno;
+use function curl_error;
+use function curl_multi_getcontent;
+use function curl_multi_close;
+use function curl_init;
+use function strtoupper;
+use function array_merge;
+use function ucwords;
+use function curl_setopt;
+use function curl_setopt_array;
+use function trim;
+use const CURLM_OK;
+use const CURLM_CALL_MULTI_PERFORM;
+use const CURLOPT_TIMEOUT;
+use const CURLOPT_CONNECTTIMEOUT;
+use const CURLOPT_RETURNTRANSFER;
+use const CURLOPT_FOLLOWLOCATION;
+use const CURLOPT_MAXREDIRS;
+use const CURLOPT_URL;
+use const CURLOPT_CUSTOMREQUEST;
+use const CURLOPT_POSTFIELDS;
+use const CURLOPT_HTTPHEADER;
+use const CURLOPT_SSL_VERIFYHOST;
+use const CURLOPT_SSL_VERIFYPEER;
+use const CURLOPT_ENCODING;
+use const CURLOPT_IPRESOLVE;
+use const CURLOPT_PROXY;
+use const CURLOPT_PROXYPORT;
 
 /**
  * Class CurlMulti
@@ -76,7 +112,7 @@ class CurlMulti // extends CurlLite
      */
     public function __construct(array $options = [])
     {
-        $this->options = \array_merge($this->defaultOptions, $options);
+        $this->options = array_merge($this->defaultOptions, $options);
     }
 
     /**
@@ -86,13 +122,13 @@ class CurlMulti // extends CurlLite
      */
     public function build(array $data)
     {
-        $this->mh = \curl_multi_init();
+        $this->mh = curl_multi_init();
 
         foreach ($data as $key => $opts) {
             $opts = ClientUtil::mergeArray($this->options, $opts);
             $this->chMap[$key] = $this->createResource($opts['url'], [], [], $opts);
 
-            \curl_multi_add_handle($this->mh, $this->chMap[$key]);
+            curl_multi_add_handle($this->mh, $this->chMap[$key]);
         }
 
         // unset($data);
@@ -108,10 +144,10 @@ class CurlMulti // extends CurlLite
      */
     public function append(string $url, $data = null, array $headers = [], array $options = [])
     {
-        $options = \array_merge($this->options, $options);
+        $options = array_merge($this->options, $options);
         $this->chMap[] = $ch = $this->createResource($url, $data, $headers, $options);
 
-        \curl_multi_add_handle($this->mh, $ch);
+        curl_multi_add_handle($this->mh, $ch);
 
         return $this;
     }
@@ -129,36 +165,36 @@ class CurlMulti // extends CurlLite
         }
 
         $active = true;
-        $mrc = \CURLM_OK;
+        $mrc = CURLM_OK;
 
-        while ($active && $mrc === \CURLM_OK) {
+        while ($active && $mrc === CURLM_OK) {
             // Solve CPU 100% usage
-            if (\curl_multi_select($mh) === -1) {
-                \usleep(100);
+            if (curl_multi_select($mh) === -1) {
+                usleep(100);
             }
 
             do {
-                $mrc = \curl_multi_exec($mh, $active);
+                $mrc = curl_multi_exec($mh, $active);
                 // curl_multi_select($mh); // Solve CPU 100% usage
-            } while ($mrc === \CURLM_CALL_MULTI_PERFORM);
+            } while ($mrc === CURLM_CALL_MULTI_PERFORM);
         }
 
         $responses = [];
 
         // 关闭全部句柄
         foreach ($this->chMap as $key => $ch) {
-            \curl_multi_remove_handle($mh, $ch);
+            curl_multi_remove_handle($mh, $ch);
 
-            if ($eno = \curl_errno($ch)) {
-                $eor = \curl_error($ch);
+            if ($eno = curl_errno($ch)) {
+                $eor = curl_error($ch);
                 $this->errors[$key] = [$eno, $eor];
                 $responses[$key] = null;
             } else {
-                $responses[$key] = \curl_multi_getcontent($ch);
+                $responses[$key] = curl_multi_getcontent($ch);
             }
         }
 
-        \curl_multi_close($mh);
+        curl_multi_close($mh);
         return $responses;
     }
 
@@ -171,27 +207,27 @@ class CurlMulti // extends CurlLite
      */
     public function createResource($url, $data = null, array $headers = [], array $opts = [])
     {
-        $ch = \curl_init();
+        $ch = curl_init();
 
         $curlOptions = [
             // 设置超时
-            \CURLOPT_TIMEOUT => (int)$opts['timeout'],
-            \CURLOPT_CONNECTTIMEOUT => (int)$opts['timeout'],
+            CURLOPT_TIMEOUT => (int)$opts['timeout'],
+            CURLOPT_CONNECTTIMEOUT => (int)$opts['timeout'],
 
             // 要求返回结果而不是输出到屏幕上
-            \CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_RETURNTRANSFER => true,
 
             // 允许重定向
-            \CURLOPT_FOLLOWLOCATION => true,
-            \CURLOPT_MAXREDIRS => 5,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 5,
 
             // 设置不返回header 返回的响应就只有body
             \CURLOPT_HEADER => false,
         ];
 
-        $curlOptions[\CURLOPT_URL] = $this->buildUrl($url);
+        $curlOptions[CURLOPT_URL] = $this->buildUrl($url);
 
-        $method = \strtoupper($opts['method']);
+        $method = strtoupper($opts['method']);
         switch ($method) {
             case 'GET':
                 $curlOptions[CURLOPT_HTTPGET] = true;
@@ -207,58 +243,58 @@ class CurlMulti // extends CurlLite
                 $curlOptions[CURLOPT_NOBODY] = true;
                 break;
             default:
-                $curlOptions[\CURLOPT_CUSTOMREQUEST] = $method;
+                $curlOptions[CURLOPT_CUSTOMREQUEST] = $method;
         }
 
         // data
         if (isset($opts['data'])) {
-            $data = \array_merge($opts['data'], $data);
+            $data = array_merge($opts['data'], $data);
         }
         if ($data) {
-            $curlOptions[\CURLOPT_POSTFIELDS] = $data;
+            $curlOptions[CURLOPT_POSTFIELDS] = $data;
         }
 
         // headers
         if ($opts['headers']) {
-            $headers = \array_merge($opts['headers'], $headers);
+            $headers = array_merge($opts['headers'], $headers);
         }
         if ($headers) {
             $formatted = [];
             foreach ($headers as $name => $value) {
-                $name = \ucwords($name);
+                $name = ucwords($name);
                 $formatted[] = "$name: $value";
             }
 
             $formatted[] = 'Expect: '; // 首次速度非常慢 解决
             $formatted[] = 'Accept-Encoding: gzip, deflate'; // gzip
-            $curlOptions[\CURLOPT_HTTPHEADER] = $formatted;
+            $curlOptions[CURLOPT_HTTPHEADER] = $formatted;
         }
 
         // disable 'https' verify
         if ($opts['sslVerify'] === false) {
-            $curlOptions[\CURLOPT_SSL_VERIFYHOST] = 0;
-            $curlOptions[\CURLOPT_SSL_VERIFYPEER] = false;
+            $curlOptions[CURLOPT_SSL_VERIFYHOST] = 0;
+            $curlOptions[CURLOPT_SSL_VERIFYPEER] = false;
         }
 
         // gzip
-        $curlOptions[\CURLOPT_ENCODING] = 'gzip';
+        $curlOptions[CURLOPT_ENCODING] = 'gzip';
 
         // 首次速度非常慢 解决
-        $curlOptions[\CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V4;
+        $curlOptions[CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V4;
 
         foreach ($curlOptions as $option => $value) {
-            \curl_setopt($ch, $option, $value);
+            curl_setopt($ch, $option, $value);
         }
 
         // 如果有配置代理这里就设置代理
         if (isset($opts['proxy']) && $opts['proxy']) {
-            \curl_setopt($ch, \CURLOPT_PROXY, $opts['proxy']['host']);
-            \curl_setopt($ch, \CURLOPT_PROXYPORT, $opts['proxy']['port']);
+            curl_setopt($ch, CURLOPT_PROXY, $opts['proxy']['host']);
+            curl_setopt($ch, CURLOPT_PROXYPORT, $opts['proxy']['port']);
         }
 
         // add custom options
         if ($opts['curlOptions']) {
-            \curl_setopt_array($ch, $opts['curlOptions']);
+            curl_setopt_array($ch, $opts['curlOptions']);
         }
 
         return $ch;
@@ -271,7 +307,7 @@ class CurlMulti // extends CurlLite
      */
     protected function buildUrl(string $url, $data = null)
     {
-        $url = \trim($url);
+        $url = trim($url);
 
         // is a url part.
         if ($this->baseUrl && !ClientUtil::isFullURL($url)) {
@@ -280,7 +316,7 @@ class CurlMulti // extends CurlLite
 
         // check again
         if (!ClientUtil::isFullURL($url)) {
-            throw new \RuntimeException("The request url is not full, URL $url");
+            throw new RuntimeException("The request url is not full, URL $url");
         }
 
         if ($data) {
@@ -309,7 +345,7 @@ class CurlMulti // extends CurlLite
     /**
      * reset data
      */
-    public function reset()
+    public function reset(): void
     {
         $this->mh = null;
         $this->chMap = $this->errors = [];
@@ -326,7 +362,7 @@ class CurlMulti // extends CurlLite
     /**
      * @param array $errors
      */
-    public function setErrors(array $errors)
+    public function setErrors(array $errors): void
     {
         $this->errors = $errors;
     }
@@ -342,7 +378,7 @@ class CurlMulti // extends CurlLite
     /**
      * @param array $chMap
      */
-    public function setChMap(array $chMap)
+    public function setChMap(array $chMap): void
     {
         $this->chMap = $chMap;
     }
@@ -358,7 +394,7 @@ class CurlMulti // extends CurlLite
     /**
      * @param resource $mh
      */
-    public function setMh($mh)
+    public function setMh($mh): void
     {
         $this->mh = $mh;
     }
@@ -374,7 +410,7 @@ class CurlMulti // extends CurlLite
     /**
      * @param string $baseUrl
      */
-    public function setBaseUrl(string $baseUrl)
+    public function setBaseUrl(string $baseUrl): void
     {
         $this->baseUrl = $baseUrl;
     }

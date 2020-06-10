@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018/11/22
- * Time: 6:51 PM
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Test\Swoole;
@@ -11,6 +12,8 @@ namespace PhpComp\Http\Client\Test\Swoole;
 use PhpComp\Http\Client\Swoole\CoClient;
 use PHPUnit\Framework\TestCase;
 use Swoole\Timer;
+use function swoole_event_exit;
+use function go;
 
 /**
  * Class CoClientTest
@@ -19,22 +22,22 @@ use Swoole\Timer;
  */
 class CoClientTest extends TestCase
 {
-    protected function tearDown()
+    protected function tearDown(): void
     {
         // parent::tearDown();
-        Timer::after(3 * 1000, function () {
-            \swoole_event_exit();
+        Timer::after(3 * 1000, function (): void {
+            swoole_event_exit();
         });
     }
 
-    public function testGet()
+    public function testGet(): void
     {
         if (!CoClient::isAvailable()) {
             return;
         }
 
         // http
-        $cid = \go(function () {
+        $cid = go(function (): void {
             $c = CoClient::create();
             $c->get('http://www.baidu.com');
 
@@ -48,13 +51,13 @@ class CoClientTest extends TestCase
         $this->assertTrue($cid > 0);
     }
 
-    public function testDefer()
+    public function testDefer(): void
     {
         if (!CoClient::isAvailable()) {
             return;
         }
 
-        $cid = \go(function () {
+        $cid = go(function (): void {
             $c = CoClient::create();
             $c->setDefer()->get('http://www.baidu.com');
 

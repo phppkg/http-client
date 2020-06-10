@@ -1,12 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018/11/21
- * Time: 3:35 PM
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client;
+
+use Closure;
 
 /**
  * Interface ClientInterface
@@ -16,17 +19,26 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
 {
     // http auth
     const AUTH_BASIC = 1;
+
     const AUTH_DIGEST = 2;
 
     // request method list
     const GET = 'GET';
+
     const POST = 'POST';
+
     const PUT = 'PUT';
+
     const PATCH = 'PATCH';
+
     const DELETE = 'DELETE';
+
     const HEAD = 'HEAD';
+
     const OPTIONS = 'OPTIONS';
+
     const TRACE = 'TRACE';
+
     const SEARCH = 'SEARCH';
 
     /**
@@ -105,10 +117,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = []);
 
     /**
-     * @param \Closure $responseCreator
+     * @param Closure $responseCreator
      * @return self
      */
-    public function setResponseCreator(\Closure $responseCreator);
+    public function setResponseCreator(Closure $responseCreator);
 
     /**
      * reset options, request headers, cookies, response data...
@@ -231,6 +243,4 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @return string
      */
     public function getDriverName(): string;
-
-
 }

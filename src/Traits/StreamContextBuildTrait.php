@@ -1,15 +1,22 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018-11-24
- * Time: 20:03
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Traits;
 
 use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\StreamContext;
+use InvalidArgumentException;
+use function is_resource;
+use function http_build_query;
+use function array_merge;
+use function strlen;
+use function sprintf;
 
 /**
  * Trait StreamContextBuildTrait
@@ -36,21 +43,21 @@ trait StreamContextBuildTrait
             $context = $opts['streamContext'];
 
             // Suppress the error since we'll catch it below
-            if (\is_resource($context) && get_resource_type($context) !== 'stream-context') {
-                throw new \InvalidArgumentException("Stream context in options[streamContext] isn't a valid context resource");
+            if (is_resource($context) && get_resource_type($context) !== 'stream-context') {
+                throw new InvalidArgumentException("Stream context in options[streamContext] isn't a valid context resource");
             }
         } else {
             $context = StreamContext::create();
         }
 
         // build cookies value
-        if ($cookies = \array_merge($this->cookies, $opts['cookies'])) {
+        if ($cookies = array_merge($this->cookies, $opts['cookies'])) {
             // "Cookie: name=value; name1=value1"
-            $headers['Cookie'] = \http_build_query($cookies, '', '; ');
+            $headers['Cookie'] = http_build_query($cookies, '', '; ');
         }
 
         $info = ClientUtil::parseUrl($fullUrl);
-        $headers = \array_merge($this->headers, $opts['headers'], $headers);
+        $headers = array_merge($this->headers, $opts['headers'], $headers);
         $headers = ClientUtil::ucwordArrayKeys($headers);
 
         if (!isset($headers['Host'])) {
@@ -66,7 +73,7 @@ trait StreamContextBuildTrait
             if ($method === 'POST' || $method === 'PUT' || $method === 'PATCH') {
                 $body = ClientUtil::buildBodyByContentType($headers, $data);
                 // add Content-length
-                $headers['Content-Length'] = \strlen($body);
+                $headers['Content-Length'] = strlen($body);
             } else {
                 $this->fullUrl = ClientUtil::buildURL($fullUrl, $data);
             }
@@ -81,7 +88,7 @@ trait StreamContextBuildTrait
 
         // 设置代理
         if ($proxy = $opts['proxy']) {
-            $httpOptions['proxy'] = \sprintf('tcp://%s:%d', $proxy['host'], (int)$proxy['port']);
+            $httpOptions['proxy'] = sprintf('tcp://%s:%d', $proxy['host'], (int)$proxy['port']);
         }
 
         StreamContext::setHTTPOptions($context, $httpOptions);

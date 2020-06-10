@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2017-08-30
- * Time: 17:26
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client;
@@ -12,6 +13,17 @@ use PhpComp\Http\Client\Error\ClientException;
 use PhpComp\Http\Client\Error\RequestException;
 use PhpComp\Http\Client\Traits\BuildRawHttpRequestTrait;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
+use function function_exists;
+use function strtoupper;
+use function array_merge;
+use function pfsockopen;
+use function fsockopen;
+use function stream_set_timeout;
+use function fwrite;
+use function feof;
+use function fread;
+use function stream_get_meta_data;
+use function fclose;
 
 /**
  * Class FSockClient - powered by func fsockopen()
@@ -43,7 +55,7 @@ class FSockClient extends AbstractClient
      */
     public static function isAvailable(): bool
     {
-        return \function_exists('fsockopen');
+        return function_exists('fsockopen');
     }
 
     /**
@@ -58,21 +70,21 @@ class FSockClient extends AbstractClient
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
     {
         if ($method) {
-            $options['method'] = \strtoupper($method);
+            $options['method'] = strtoupper($method);
         }
 
         // get request url info
         $info = ClientUtil::parseUrl($this->buildFullUrl($url));
 
         // merge global options data.
-        $options = \array_merge($this->options, $options);
+        $options = array_merge($this->options, $options);
         $timeout = (int)$options['timeout'];
 
         // open socket connection
         if (isset($options['persistent']) && $options['persistent']) {
-            $handle = \pfsockopen($info['host'], $info['port'], $errno, $error, $timeout);
+            $handle = pfsockopen($info['host'], $info['port'], $errno, $error, $timeout);
         } else {
-            $handle = \fsockopen($info['host'], $info['port'], $errno, $error, $timeout);
+            $handle = fsockopen($info['host'], $info['port'], $errno, $error, $timeout);
         }
 
         // if open fail
@@ -83,22 +95,22 @@ class FSockClient extends AbstractClient
         $string = $this->buildRawHttpData($info, $headers, $options, $data);
 
         // set timeout
-        \stream_set_timeout($handle, $timeout);
+        stream_set_timeout($handle, $timeout);
 
         // send request
-        if (false === \fwrite($handle, $string)) {
+        if (false === fwrite($handle, $string)) {
             throw new RequestException('send request to server is fail');
         }
 
         // read response
-        while (!\feof($handle)) {
-            $this->rawResponse .= \fread($handle, 4096);
+        while (!feof($handle)) {
+            $this->rawResponse .= fread($handle, 4096);
         }
 
         // save some info
-        $this->responseInfo = \stream_get_meta_data($handle);
+        $this->responseInfo = stream_get_meta_data($handle);
 
-        \fclose($handle);
+        fclose($handle);
 
         // parse raw response
         $this->parseResponse();
@@ -125,5 +137,4 @@ class FSockClient extends AbstractClient
     {
         return $this->responseInfo;
     }
-
 }

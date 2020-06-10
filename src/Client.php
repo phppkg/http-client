@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018/11/21
- * Time: 3:27 PM
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client;
@@ -11,6 +12,9 @@ namespace PhpComp\Http\Client;
 use PhpComp\Http\Client\Curl\CurlClient;
 use PhpComp\Http\Client\Swoole\CoClient;
 use PhpComp\Http\Client\Swoole\CoClient2;
+use RuntimeException;
+use InvalidArgumentException;
+use function method_exists;
 
 /**
  * Class Client
@@ -76,7 +80,7 @@ class Client
         }
 
         if ($class === '') {
-            throw new \RuntimeException('no driver is available!');
+            throw new RuntimeException('no driver is available!');
         }
 
         return $class::create($config);
@@ -85,7 +89,7 @@ class Client
     /**
      * @param array $config
      */
-    public static function configDefault(array $config)
+    public static function configDefault(array $config): void
     {
         self::$defaultConfig = $config;
     }
@@ -101,7 +105,7 @@ class Client
     /**
      * @param ClientInterface $defaultDriver
      */
-    public static function setDefaultDriver(ClientInterface $defaultDriver)
+    public static function setDefaultDriver(ClientInterface $defaultDriver): void
     {
         self::$defaultDriver = $defaultDriver;
     }
@@ -116,16 +120,16 @@ class Client
         if (!$client = self::$defaultDriver) {
             // has config, create driver instance from config.
             if (!$config = self::$defaultConfig) {
-                throw new \RuntimeException('must be setting default client driver before call');
+                throw new RuntimeException('must be setting default client driver before call');
             }
 
             $client = self::factory($config);
         }
 
-        if (\method_exists($client, $method)) {
+        if (method_exists($client, $method)) {
             return $client->reset()->$method(...$args);
         }
 
-        throw new \InvalidArgumentException('call invalid class method: ' . $method);
+        throw new InvalidArgumentException('call invalid class method: ' . $method);
     }
 }

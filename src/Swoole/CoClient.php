@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2017-08-30
- * Time: 17:26
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Swoole;
@@ -12,6 +13,11 @@ use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\Error\ClientException;
 use Swoole\Coroutine\Http\Client;
+use Exception;
+use function class_exists;
+use function strtoupper;
+use function array_merge;
+use function socket_strerror;
 
 /**
  * Class CoClient
@@ -35,7 +41,7 @@ class CoClient extends AbstractClient
      */
     public static function isAvailable(): bool
     {
-        return \class_exists(Client::class);
+        return class_exists(Client::class);
     }
 
     /**
@@ -43,7 +49,7 @@ class CoClient extends AbstractClient
      * @param string $url
      * @param string $saveAs
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function download(string $url, string $saveAs): bool
     {
@@ -73,7 +79,7 @@ class CoClient extends AbstractClient
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
     {
         if ($method) {
-            $options['method'] = \strtoupper($method);
+            $options['method'] = strtoupper($method);
         }
 
         // get request url info
@@ -137,10 +143,10 @@ class CoClient extends AbstractClient
         return new Client($info['host'], $info['port'], $sslVerify);
     }
 
-    private function prepareClient(Client $client, array $headers, array $options)
+    private function prepareClient(Client $client, array $headers, array $options): void
     {
         // merge global options data.
-        $options = \array_merge($this->options, $options);
+        $options = array_merge($this->options, $options);
         $coOptions = [
             // 'timeout' => -1
             'timeout' => (int)$options['timeout'],
@@ -161,7 +167,7 @@ class CoClient extends AbstractClient
          * ... more
          */
         if (isset($options['coOptions'])) {
-            $coOptions = \array_merge($coOptions, $options['coOptions']);
+            $coOptions = array_merge($coOptions, $options['coOptions']);
         }
 
         // some swoole client option
@@ -172,12 +178,12 @@ class CoClient extends AbstractClient
         $client->setMethod($method);
 
         // set headers
-        if ($headers = \array_merge($this->headers, $options['headers'], $headers)) {
+        if ($headers = array_merge($this->headers, $options['headers'], $headers)) {
             $client->setHeaders($headers);
         }
 
         // set cookies
-        if ($cookies = \array_merge($this->cookies, $options['cookies'])) {
+        if ($cookies = array_merge($this->cookies, $options['cookies'])) {
             $client->setCookies($cookies);
         }
 
@@ -187,11 +193,11 @@ class CoClient extends AbstractClient
         }
     }
 
-    private function collectResponse(Client $client)
+    private function collectResponse(Client $client): void
     {
         // check error
         if ($errno = $client->errCode) {
-            throw new ClientException(\socket_strerror($client->errCode), $errno);
+            throw new ClientException(socket_strerror($client->errCode), $errno);
         }
 
         $this->statusCode = $client->statusCode;

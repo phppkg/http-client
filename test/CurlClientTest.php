@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018/11/22
- * Time: 5:19 PM
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Test;
@@ -18,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 class CurlClientTest extends TestCase
 {
-    public function testGet()
+    public function testGet(): void
     {
         // http
         $c = CurlClient::create();
@@ -43,7 +44,7 @@ class CurlClientTest extends TestCase
         $this->assertNotEmpty($c->getResponseHeaders());
     }
 
-    public function testDownload()
+    public function testDownload(): void
     {
         $c = CurlClient::create();
         $url = 'https://github.com/php-comp/http-client/archive/master.zip';

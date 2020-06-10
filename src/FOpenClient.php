@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018-11-23
- * Time: 19:31
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client;
@@ -11,6 +12,16 @@ namespace PhpComp\Http\Client;
 use PhpComp\Http\Client\Error\ClientException;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
 use PhpComp\Http\Client\Traits\StreamContextBuildTrait;
+use Throwable;
+use function function_exists;
+use function strtoupper;
+use function array_merge;
+use function fopen;
+use function stream_set_timeout;
+use function feof;
+use function fread;
+use function stream_get_meta_data;
+use function fclose;
 
 /**
  * Class FOpenClient - powered by func fopen()
@@ -53,7 +64,7 @@ class FOpenClient extends AbstractClient
      */
     public static function isAvailable(): bool
     {
-        return \function_exists('fopen');
+        return function_exists('fopen');
     }
 
     /**
@@ -68,34 +79,34 @@ class FOpenClient extends AbstractClient
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
     {
         if ($method) {
-            $options['method'] = \strtoupper($method);
+            $options['method'] = strtoupper($method);
         }
 
         // get request url info
         $url = $this->buildFullUrl($url);
         // merge global options data.
-        $options = \array_merge($this->options, $options);
+        $options = array_merge($this->options, $options);
 
         try {
             $ctx = $this->buildStreamContext($url, $headers, $options, $data);
             $fullUrl = ClientUtil::encodeURL($this->fullUrl);
             // send request
-            $this->handle = \fopen($fullUrl, 'rb', false, $ctx);
-        } catch (\Throwable $e) {
+            $this->handle = fopen($fullUrl, 'rb', false, $ctx);
+        } catch (Throwable $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         }
 
         // set timeout
-        \stream_set_timeout($this->handle, (int)$options['timeout']);
+        stream_set_timeout($this->handle, (int)$options['timeout']);
 
         // read response
         // $content = \stream_get_contents($this->handle);
-        while (!\feof($this->handle)) {
-            $this->responseBody .= \fread($this->handle, 4096);
+        while (!feof($this->handle)) {
+            $this->responseBody .= fread($this->handle, 4096);
         }
 
         // save some info
-        $this->responseInfo = \stream_get_meta_data($this->handle);
+        $this->responseInfo = stream_get_meta_data($this->handle);
 
         // collect headers data
         if (isset($this->responseInfo['wrapper_data'])) {
@@ -104,7 +115,7 @@ class FOpenClient extends AbstractClient
             unset($this->responseInfo['wrapper_data']);
         }
 
-        \fclose($this->handle);
+        fclose($this->handle);
         return $this;
     }
 

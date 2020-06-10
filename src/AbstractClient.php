@@ -1,15 +1,37 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018/11/21
- * Time: 3:23 PM
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use InvalidArgumentException;
+use stdClass;
+use Exception;
+use RuntimeException;
+use Closure;
+use function strtoupper;
+use function implode;
+use function fopen;
+use function fwrite;
+use function fclose;
+use function base64_encode;
+use function ltrim;
+use function trim;
+use function array_merge;
+use function json_decode;
+use function json_last_error;
+use function ucwords;
+use function substr;
+use function strrpos;
+use function strtolower;
+use function str_replace;
 
 /**
  * Class AbstractClient
@@ -36,7 +58,7 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * for create psr7 ResponseInterface instance
-     * @var \Closure function(): ResponseInterface {..}
+     * @var Closure function(): ResponseInterface {..}
      */
     protected $responseCreator;
 
@@ -144,7 +166,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @param array $options
      * @return static
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public static function create(array $options = []): ClientInterface
     {
@@ -154,12 +176,12 @@ abstract class AbstractClient implements ClientInterface
     /**
      * SimpleCurl constructor.
      * @param array $options
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __construct(array $options = [])
     {
         if (!static::isAvailable()) {
-            throw new \RuntimeException('The client driver' . static::class . ' is not available');
+            throw new RuntimeException('The client driver' . static::class . ' is not available');
         }
 
         if (isset($options['baseUrl'])) {
@@ -167,7 +189,7 @@ abstract class AbstractClient implements ClientInterface
             unset($options['baseUrl']);
         }
 
-        $this->options = \array_merge($this->defaultOptions, $options);
+        $this->options = array_merge($this->defaultOptions, $options);
     }
 
     /**
@@ -192,10 +214,10 @@ abstract class AbstractClient implements ClientInterface
      */
     protected function formatAndCheckMethod(string $method): string
     {
-        $method = \strtoupper($method);
+        $method = strtoupper($method);
 
         if (!isset(self::$supportedMethods[$method])) {
-            throw new \InvalidArgumentException("The method type [$method] is not supported!");
+            throw new InvalidArgumentException("The method type [$method] is not supported!");
         }
 
         return $method;
@@ -280,7 +302,7 @@ abstract class AbstractClient implements ClientInterface
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
         foreach ($request->getHeaders() as $name => $values) {
-            $this->setHeader($name, \implode(', ', $values));
+            $this->setHeader($name, implode(', ', $values));
         }
 
         // send request
@@ -294,7 +316,7 @@ abstract class AbstractClient implements ClientInterface
      * @param string $url
      * @param string $saveAs
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function download(string $url, string $saveAs): bool
     {
@@ -303,12 +325,12 @@ abstract class AbstractClient implements ClientInterface
             return false;
         }
 
-        if (($fp = \fopen($saveAs, 'wb')) === false) {
-            throw new \RuntimeException('Failed to open the save file', __LINE__);
+        if (($fp = fopen($saveAs, 'wb')) === false) {
+            throw new RuntimeException('Failed to open the save file', __LINE__);
         }
 
-        \fwrite($fp, $data);
-        return \fclose($fp);
+        fwrite($fp, $data);
+        return fclose($fp);
     }
 
     /**************************************************************************
@@ -438,11 +460,11 @@ abstract class AbstractClient implements ClientInterface
     public function setUserAuth(string $user, string $pwd = '', int $authType = self::AUTH_BASIC)
     {
         if ($authType === self::AUTH_BASIC) {
-            $sign = 'Basic ' . \base64_encode("$user:$pwd");
+            $sign = 'Basic ' . base64_encode("$user:$pwd");
         } elseif ($authType === self::AUTH_DIGEST) {
             $sign = 'Digest ' . $user . $pwd;
         } else {
-            throw new \InvalidArgumentException('invalid auth type input');
+            throw new InvalidArgumentException('invalid auth type input');
         }
 
         $this->setHeader('Authorization', $sign);
@@ -482,7 +504,7 @@ abstract class AbstractClient implements ClientInterface
     {
         $formatted = [];
         foreach ($headers as $name => $value) {
-            $name = \ucwords($name);
+            $name = ucwords($name);
             $formatted[] = "$name: $value";
         }
 
@@ -526,7 +548,7 @@ abstract class AbstractClient implements ClientInterface
      */
     public function setHeader(string $name, string $value, bool $override = false)
     {
-        $name = \ucwords($name);
+        $name = ucwords($name);
 
         if ($override || !isset($this->headers[$name])) {
             $this->headers[$name] = $value;
@@ -542,7 +564,7 @@ abstract class AbstractClient implements ClientInterface
     public function delHeader($names)
     {
         foreach ((array)$names as $name) {
-            $name = \ucwords($name);
+            $name = ucwords($name);
 
             if (isset($this->headers[$name])) {
                 unset($this->headers[$name]);
@@ -563,16 +585,16 @@ abstract class AbstractClient implements ClientInterface
      */
     protected function buildFullUrl(string $url, $data = null)
     {
-        $url = \trim($url);
+        $url = trim($url);
 
         // is a url part.
         if ($this->baseUrl && !ClientUtil::isFullURL($url)) {
-            $url = $this->baseUrl . '/' . \ltrim($url, '/');
+            $url = $this->baseUrl . '/' . ltrim($url, '/');
         }
 
         // check again
         if (!ClientUtil::isFullURL($url)) {
-            throw new \RuntimeException("The request url is not full, URL $url");
+            throw new RuntimeException("The request url is not full, URL $url");
         }
 
         if ($data) {
@@ -681,18 +703,18 @@ abstract class AbstractClient implements ClientInterface
      *************************************************************************/
 
     /**
-     * @return \Closure
+     * @return Closure
      */
-    public function getResponseCreator(): \Closure
+    public function getResponseCreator(): Closure
     {
         return $this->responseCreator;
     }
 
     /**
-     * @param \Closure $responseCreator
+     * @param Closure $responseCreator
      * @return AbstractClient
      */
-    public function setResponseCreator(\Closure $responseCreator)
+    public function setResponseCreator(Closure $responseCreator)
     {
         $this->responseCreator = $responseCreator;
         return $this;
@@ -704,7 +726,7 @@ abstract class AbstractClient implements ClientInterface
      */
     public function setBaseUrl(string $url)
     {
-        $this->baseUrl = \trim($url);
+        $this->baseUrl = trim($url);
         return $this;
     }
 
@@ -737,9 +759,9 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @param array $options
      */
-    public function setOptions(array $options)
+    public function setOptions(array $options): void
     {
-        $this->options = \array_merge($this->options, $options);
+        $this->options = array_merge($this->options, $options);
     }
 
     /**
@@ -795,8 +817,8 @@ abstract class AbstractClient implements ClientInterface
             return [];
         }
 
-        $data = \json_decode($body, true);
-        if (\json_last_error() > 0) {
+        $data = json_decode($body, true);
+        if (json_last_error() > 0) {
             return false;
         }
 
@@ -804,7 +826,7 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * @return bool|\stdClass
+     * @return bool|stdClass
      */
     public function getJsonObject()
     {
@@ -812,8 +834,8 @@ abstract class AbstractClient implements ClientInterface
             return false;
         }
 
-        $data = \json_decode($body);
-        if (\json_last_error() > 0) {
+        $data = json_decode($body);
+        if (json_last_error() > 0) {
             return false;
         }
 
@@ -851,7 +873,7 @@ abstract class AbstractClient implements ClientInterface
      */
     public function getResponseHeader(string $name, $default = null)
     {
-        $name = \ucwords($name);
+        $name = ucwords($name);
         return $this->responseHeaders[$name] ?? $default;
     }
 
@@ -901,8 +923,8 @@ abstract class AbstractClient implements ClientInterface
     public function getDriverName(): string
     {
         $class = static::class;
-        $name = \substr($class, \strrpos($class, '\\') + 1);
+        $name = substr($class, strrpos($class, '\\') + 1);
 
-        return \strtolower(\str_replace('Client', '', $name));
+        return strtolower(str_replace('Client', '', $name));
     }
 }

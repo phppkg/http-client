@@ -8,5 +8,6 @@ composer.lock
 *.log
 *.zip
 *.pid
+*.cache
 *.patch
 .DS_Store

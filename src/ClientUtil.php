@@ -1,14 +1,27 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018/11/21
- * Time: 2:47 PM
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client;
 
 use PhpComp\Http\Client\Error\ClientException;
+use function ucwords;
+use function parse_url;
+use function array_merge;
+use function trim;
+use function urldecode;
+use function rawurlencode;
+use function mb_convert_encoding;
+use function str_replace;
+use function is_scalar;
+use function stripos;
+use function json_encode;
+use function http_build_query;
 
 /**
  * Class ClientUtil
@@ -46,7 +59,7 @@ class ClientUtil
     {
         $newMap = [];
         foreach ($arr as $key => $value) {
-            $newMap[\ucwords($key)] = $value;
+            $newMap[ucwords($key)] = $value;
         }
 
         return $newMap;
@@ -67,12 +80,12 @@ class ClientUtil
      */
     public static function parseUrl(string $url): array
     {
-        $info = \parse_url($url);
+        $info = parse_url($url);
         if ($info === false) {
             throw new ClientException('invalid request url: ' . $url);
         }
 
-        $info = \array_merge([
+        $info = array_merge([
             'scheme' => 'http',
             'host' => '',
             'port' => 80,
@@ -90,7 +103,7 @@ class ClientUtil
      */
     public static function buildURL(string $url, $data = null)
     {
-        if ($data && ($query = \http_build_query($data))) {
+        if ($data && ($query = http_build_query($data))) {
             $url .= (\strpos($url, '?') ? '&' : '?') . $query;
         }
 
@@ -98,7 +111,7 @@ class ClientUtil
     }
 
     // Build arrays of values we need to decode before parsing
-    protected static $entities = array(
+    protected static $entities = [
         '%21',
         '%2A',
         '%27',
@@ -116,9 +129,9 @@ class ClientUtil
         '%23',
         '%5B',
         '%5D'
-    );
+    ];
 
-    protected static $replacements = array(
+    protected static $replacements = [
         '!',
         '*',
         "'",
@@ -136,7 +149,7 @@ class ClientUtil
         '#',
         '[',
         ']'
-    );
+    ];
 
     /**
      * [urlEncode 会先转换编码]
@@ -150,16 +163,16 @@ class ClientUtil
      */
     public static function encodeURL(string $url)
     {
-        if (!$url = \trim($url)) {
+        if (!$url = trim($url)) {
             return '';
         }
 
         // 若已被编码的url，将被解码，再继续重新编码
-        $url = \urldecode($url);
-        $encodeUrl = \rawurlencode(\mb_convert_encoding($url, 'utf-8'));
+        $url = urldecode($url);
+        $encodeUrl = rawurlencode(mb_convert_encoding($url, 'utf-8'));
 
         // $url  = rawurlencode($url);
-        return \str_replace(self::$entities, self::$replacements, $encodeUrl);
+        return str_replace(self::$entities, self::$replacements, $encodeUrl);
     }
 
     /**
@@ -171,7 +184,7 @@ class ClientUtil
     {
         $defContentType = 'application/x-www-form-urlencoded';
 
-        if (\is_scalar($data)) { // string.
+        if (is_scalar($data)) { // string.
             if (!isset($headers['Content-Type'])) {
                 $headers['Content-Type'] = $defContentType;
             }
@@ -184,18 +197,18 @@ class ClientUtil
             $ct = $headers['Content-Type'];
 
             // application/x-www-form-urlencoded
-            if (\stripos($ct, 'x-www-form-urlencoded')) {
-                return \http_build_query($data);
+            if (stripos($ct, 'x-www-form-urlencoded')) {
+                return http_build_query($data);
             }
 
             // application/json
-            if (\stripos($ct, 'json')) {
-                return (string)\json_encode($data);
+            if (stripos($ct, 'json')) {
+                return (string)json_encode($data);
             }
         } else {
             $headers['Content-Type'] = $defContentType;
         }
 
-        return \http_build_query($data);
+        return http_build_query($data);
     }
 }

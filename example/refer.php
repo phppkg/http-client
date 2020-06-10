@@ -1,23 +1,23 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * # example 1 获取一个页面并发送 POST 数据
  * @link https://secure.php.net/manual/zh/context.http.php#refsect1-context.http-examples
  */
 
 $postdata = http_build_query(
-    array(
+    [
         'var1' => 'some content',
         'var2' => 'doh'
-    )
+    ]
 );
 
-$opts = array('http' =>
-    array(
+$opts = ['http' =>
+    [
         'method' => 'POST',
         'header' => 'Content-type: application/x-www-form-urlencoded',
         'content' => $postdata
-    )
-);
+    ]
+];
 
 $context = stream_context_create($opts);
 $result = file_get_contents('http://example.com/submit.php', false, $context);
@@ -32,13 +32,13 @@ $result = file_get_contents('http://example.com/submit.php', false, $context);
 
 $url = 'http://www.example.org/header.php';
 
-$opts = array('http' =>
-    array(
+$opts = ['http' =>
+    [
         'method' => 'GET',
         'max_redirects' => '0',
         'ignore_errors' => '1'
-    )
-);
+    ]
+];
 
 $context = stream_context_create($opts);
 $stream = fopen($url, 'r', false, $context);
@@ -73,12 +73,12 @@ $data = file_get_contents('http://www.example.com/', null, stream_context_create
  * @link https://secure.php.net/manual/zh/context.http.php#110449
  */
 
-$stream = stream_context_create(Array('http' => Array('method' => 'GET',
+$stream = stream_context_create(['http' => ['method' => 'GET',
     'timeout' => 20,
     'header' => 'User-agent: Myagent',
     'proxy' => 'tcp://my-proxy.localnet:3128',
-    'request_fulluri' => True /* without this option we get an HTTP error! */
-)));
+    'request_fulluri' => true /* without this option we get an HTTP error! */
+]]);
 
 if ($fp = fopen('http://example.com', 'r', false, $stream)) {
     print 'well done';

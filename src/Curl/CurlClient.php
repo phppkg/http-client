@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2017-03-08
- * Time: 16:40
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Curl;
@@ -12,6 +13,73 @@ use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\Error\ClientException;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
+use InvalidArgumentException;
+use function extension_loaded;
+use function finfo_open;
+use function finfo_file;
+use function function_exists;
+use function curl_file_create;
+use function explode;
+use function trim;
+use function strrchr;
+use function strpos;
+use function pathinfo;
+use function file_put_contents;
+use function strtoupper;
+use function curl_exec;
+use function curl_errno;
+use function in_array;
+use function curl_error;
+use function sprintf;
+use function curl_getinfo;
+use function curl_close;
+use function curl_init;
+use function curl_setopt;
+use function http_build_query;
+use function curl_setopt_array;
+use function file_exists;
+use const CURLE_COULDNT_RESOLVE_HOST;
+use const CURLE_COULDNT_CONNECT;
+use const CURLE_HTTP_NOT_FOUND;
+use const CURLE_READ_ERROR;
+use const CURLE_OPERATION_TIMEOUTED;
+use const CURLE_HTTP_POST_ERROR;
+use const CURLE_SSL_CONNECT_ERROR;
+use const CURLOPT_RETURNTRANSFER;
+use const CURLOPT_FOLLOWLOCATION;
+use const CURLOPT_MAXREDIRS;
+use const CURLOPT_AUTOREFERER;
+use const FILEINFO_MIME;
+use const CURLOPT_SAFE_UPLOAD;
+use const CURLOPT_VERBOSE;
+use const CURLOPT_STDERR;
+use const CURLOPT_HTTPGET;
+use const CURLOPT_POST;
+use const CURLOPT_PUT;
+use const CURLOPT_NOBODY;
+use const CURLOPT_CUSTOMREQUEST;
+use const CURLOPT_POSTFIELDS;
+use const CURLOPT_URL;
+use const CURLOPT_HTTPHEADER;
+use const CURLOPT_COOKIE;
+use const CURLOPT_COOKIEFILE;
+use const CURLOPT_TIMEOUT;
+use const CURLOPT_CONNECTTIMEOUT;
+use const CURLOPT_PROXY;
+use const CURLOPT_PROXYPORT;
+use const CURLOPT_USERAGENT;
+use const CURLOPT_REFERER;
+use const CURLAUTH_BASIC;
+use const CURLOPT_HTTPAUTH;
+use const CURLOPT_USERPWD;
+use const CURLOPT_SSLCERTPASSWD;
+use const CURLOPT_SSLCERT;
+use const CURLOPT_SSLKEYPASSWD;
+use const CURLOPT_SSLKEY;
+use const CURLOPT_ENCODING;
+use const CURLOPT_HEADER;
+use const CURLOPT_SSL_VERIFYHOST;
+use const CURLOPT_SSL_VERIFYPEER;
 
 /**
  * Class Curl
@@ -40,6 +108,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
     // ssl auth type
     const SSL_TYPE_CERT = 'cert';
+
     const SSL_TYPE_KEY = 'key';
 
     /**
@@ -47,13 +116,13 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      * @var array
      */
     private static $canRetryErrorCodes = [
-        \CURLE_COULDNT_RESOLVE_HOST,
-        \CURLE_COULDNT_CONNECT,
-        \CURLE_HTTP_NOT_FOUND,
-        \CURLE_READ_ERROR,
-        \CURLE_OPERATION_TIMEOUTED,
-        \CURLE_HTTP_POST_ERROR,
-        \CURLE_SSL_CONNECT_ERROR,
+        CURLE_COULDNT_RESOLVE_HOST,
+        CURLE_COULDNT_CONNECT,
+        CURLE_HTTP_NOT_FOUND,
+        CURLE_READ_ERROR,
+        CURLE_OPERATION_TIMEOUTED,
+        CURLE_HTTP_POST_ERROR,
+        CURLE_SSL_CONNECT_ERROR,
     ];
 
     /**************************************************************************
@@ -66,27 +135,27 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     private $_curlOptions = [
         // TRUE 将 curl_exec() 获取的信息以字符串返回，而不是直接输出
-        \CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_RETURNTRANSFER => true,
 
         // 允许重定向，最多重定向5次
-        \CURLOPT_FOLLOWLOCATION => true,
-        \CURLOPT_MAXREDIRS => 5,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 5,
 
         // true curl_exec() 会将头文件的信息作为数据流输出到响应的最前面，此时可用 [[self::parseResponse()]] 解析。
         // false curl_exec() 返回的响应就只有body data
-        \CURLOPT_HEADER => true,
+        CURLOPT_HEADER => true,
 
         // enable debug
-        \CURLOPT_VERBOSE => false,
+        CURLOPT_VERBOSE => false,
 
         // auto add REFERER
-        \CURLOPT_AUTOREFERER => true,
+        CURLOPT_AUTOREFERER => true,
 
-        \CURLOPT_CONNECTTIMEOUT => 30,
-        \CURLOPT_TIMEOUT => 30,
+        CURLOPT_CONNECTTIMEOUT => 30,
+        CURLOPT_TIMEOUT => 30,
 
         // isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-        \CURLOPT_USERAGENT => '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
+        CURLOPT_USERAGENT => '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
         //CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
     ];
 
@@ -122,7 +191,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public static function isAvailable(): bool
     {
-        return \extension_loaded('curl');
+        return extension_loaded('curl');
     }
 
     /**
@@ -138,9 +207,9 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         parent::__construct($options);
     }
 
-///////////////////////////////////////////////////////////////////////
-// extra
-///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    // extra
+    ///////////////////////////////////////////////////////////////////////
 
     /**
      * File upload
@@ -154,15 +223,15 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     public function upload(string $url, string $field, string $filePath, string $mimeType = '')
     {
         if (!$mimeType) {
-            $fInfo = \finfo_open(\FILEINFO_MIME); // 返回 mime 类型
-            $mimeType = \finfo_file($fInfo, $filePath) ?: 'application/octet-stream';
+            $fInfo = finfo_open(FILEINFO_MIME); // 返回 mime 类型
+            $mimeType = finfo_file($fInfo, $filePath) ?: 'application/octet-stream';
         }
 
         // create file
-        if (\function_exists('curl_file_create')) {
-            $file = \curl_file_create($filePath, $mimeType); // , $postFilename
+        if (function_exists('curl_file_create')) {
+            $file = curl_file_create($filePath, $mimeType); // , $postFilename
         } else {
-            $this->setCurlOption(\CURLOPT_SAFE_UPLOAD, true);
+            $this->setCurlOption(CURLOPT_SAFE_UPLOAD, true);
             $file = "@{$filePath};type={$mimeType}"; // ;filename={$postFilename}
         }
 
@@ -183,26 +252,26 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     public function downloadImage(string $imgUrl, string $saveDir, string $rename = '')
     {
         // e.g. http://static.oschina.net/uploads/user/277/554046_50.jpg?t=34512323
-        if (\strpos($imgUrl, '?')) {
-            [$real,] = \explode('?', $imgUrl, 2);
+        if (strpos($imgUrl, '?')) {
+            [$real,] = explode('?', $imgUrl, 2);
         } else {
             $real = $imgUrl;
         }
 
-        $last = \trim(\strrchr($real, '/'), '/');
+        $last = trim(strrchr($real, '/'), '/');
 
         // special url e.g http://img.blog.csdn.net/20150929103749499
-        if (false === \strpos($last, '.')) {
+        if (false === strpos($last, '.')) {
             $suffix = 'jpg';
             $name = $rename ?: $last;
         } else {
-            $info = \pathinfo($real);
+            $info = pathinfo($real);
             $suffix = $info['extension'] ?: 'jpg';
             $name = $rename ?: $info['filename'];
         }
 
         $imgFile = $saveDir . '/' . $name . '.' . $suffix;
-        if (\file_exists($imgFile)) {
+        if (file_exists($imgFile)) {
             return $imgFile;
         }
 
@@ -211,7 +280,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         $imgData = $this->request($imgUrl)->getResponseBody();
 
         if ($imgData) {
-            \file_put_contents($imgFile, $imgData);
+            file_put_contents($imgFile, $imgData);
         }
 
         return $imgFile;
@@ -228,7 +297,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public function request(string $url, $data = null, string $method = 'GET', array $headers = [], array $options = [])
     {
-        if ($method = \strtoupper($method)) {
+        if ($method = strtoupper($method)) {
             $options['method'] = $method;
         }
 
@@ -240,12 +309,12 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
         // execute
         while ($retries >= 0) {
-            if (false === ($response = \curl_exec($ch))) {
-                $curlErrNo = \curl_errno($ch);
+            if (false === ($response = curl_exec($ch))) {
+                $curlErrNo = curl_errno($ch);
 
-                if (false === \in_array($curlErrNo, self::$canRetryErrorCodes, true)) {
-                    $curlError = \curl_error($ch);
-                    $error = \sprintf('Curl error (code %s): %s', $curlErrNo, $curlError);
+                if (false === in_array($curlErrNo, self::$canRetryErrorCodes, true)) {
+                    $curlError = curl_error($ch);
+                    $error = sprintf('Curl error (code %s): %s', $curlErrNo, $curlError);
 
                     throw new ClientException($error, $curlErrNo);
                 }
@@ -257,7 +326,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         }
 
         // if \CURLOPT_HEADER is FALSE, only return body. no headers data
-        if (false === $this->getCurlOption(\CURLOPT_HEADER, false)) {
+        if (false === $this->getCurlOption(CURLOPT_HEADER, false)) {
             $this->responseBody = $response;
             $this->setResponseParsed(true);
         } else {
@@ -266,17 +335,17 @@ class CurlClient extends AbstractClient implements CurlClientInterface
             $this->parseResponse(); // parse raw response data
         }
 
-        $this->_responseInfo = \curl_getinfo($ch);
+        $this->_responseInfo = curl_getinfo($ch);
         $this->statusCode = (int)$this->_responseInfo['http_code'];
 
         // close resource
-        \curl_close($ch);
+        curl_close($ch);
         return $this;
     }
 
-///////////////////////////////////////////////////////////////////////
-//   helper method
-///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    //   helper method
+    ///////////////////////////////////////////////////////////////////////
 
     /**
      * @param string $url
@@ -291,11 +360,11 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
         // open debug
         if ($this->isDebug()) {
-            $this->_curlOptions[\CURLOPT_VERBOSE] = true;
+            $this->_curlOptions[CURLOPT_VERBOSE] = true;
 
             // redirect exec log to logFile.
             if ($logFile = $this->options['logFile']) {
-                $this->_curlOptions[\CURLOPT_STDERR] = $logFile;
+                $this->_curlOptions[CURLOPT_STDERR] = $logFile;
             }
         }
 
@@ -305,30 +374,30 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
         switch ($method) {
             case 'GET':
-                $curlOptions[\CURLOPT_HTTPGET] = true;
+                $curlOptions[CURLOPT_HTTPGET] = true;
                 break;
             case 'POST':
-                $curlOptions[\CURLOPT_POST] = true;
+                $curlOptions[CURLOPT_POST] = true;
                 break;
             case 'PUT':
-                $curlOptions[\CURLOPT_PUT] = true;
+                $curlOptions[CURLOPT_PUT] = true;
                 break;
             case 'HEAD':
-                $curlOptions[\CURLOPT_HEADER] = true;
-                $curlOptions[\CURLOPT_NOBODY] = true;
+                $curlOptions[CURLOPT_HEADER] = true;
+                $curlOptions[CURLOPT_NOBODY] = true;
                 break;
             default:
-                $curlOptions[\CURLOPT_CUSTOMREQUEST] = $method;
+                $curlOptions[CURLOPT_CUSTOMREQUEST] = $method;
         }
 
         // init curl
-        $ch = \curl_init();
+        $ch = curl_init();
 
         // add send data
         if ($data) {
             // allow post data
             if (self::$supportedMethods[$method]) {
-                \curl_setopt($ch, \CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
             } else {
                 $url = ClientUtil::buildURL($url, $data);
             }
@@ -342,43 +411,43 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         }
 
         // set request url
-        $curlOptions[\CURLOPT_URL] = ClientUtil::encodeURL($url);
+        $curlOptions[CURLOPT_URL] = ClientUtil::encodeURL($url);
 
         // append http headers
         if ($headers = \array_merge($this->headers, $options['headers'], $headers)) {
-            $curlOptions[\CURLOPT_HTTPHEADER] = $this->formatHeaders($headers);
+            $curlOptions[CURLOPT_HTTPHEADER] = $this->formatHeaders($headers);
         }
 
         // append http cookies
         if ($cookies = \array_merge($this->cookies, $options['cookies'])) {
-            $curlOptions[\CURLOPT_COOKIE] = \http_build_query($cookies, '', '; ');
+            $curlOptions[CURLOPT_COOKIE] = http_build_query($cookies, '', '; ');
         }
 
         // set cookies form file
         if ($cookieFile = $options['cookieFile'] ?? '') {
-            $curlOptions[\CURLOPT_COOKIEFILE] = $cookieFile;
+            $curlOptions[CURLOPT_COOKIEFILE] = $cookieFile;
         }
 
         // 设置超时
         if ($timeout = $options['timeout'] ?? 3) {
-            $curlOptions[\CURLOPT_TIMEOUT] = $timeout;
-            $curlOptions[\CURLOPT_CONNECTTIMEOUT] = $timeout;
+            $curlOptions[CURLOPT_TIMEOUT] = $timeout;
+            $curlOptions[CURLOPT_CONNECTTIMEOUT] = $timeout;
         }
 
         // 设置代理
         if ($proxy = $options['proxy']) {
-            $curlOptions[\CURLOPT_PROXY] = $proxy['host'];
-            $curlOptions[\CURLOPT_PROXYPORT] = (int)$proxy['port'];
+            $curlOptions[CURLOPT_PROXY] = $proxy['host'];
+            $curlOptions[CURLOPT_PROXYPORT] = (int)$proxy['port'];
         }
 
         // set options to curl handle
-        \curl_setopt_array($ch, $curlOptions);
+        curl_setopt_array($ch, $curlOptions);
         return $ch;
     }
 
-///////////////////////////////////////////////////////////////////////
-//   response data
-///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    //   response data
+    ///////////////////////////////////////////////////////////////////////
 
     /**
      * @return int
@@ -429,7 +498,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public function setUserAgent(string $userAgent)
     {
-        $this->_curlOptions[\CURLOPT_USERAGENT] = $userAgent;
+        $this->_curlOptions[CURLOPT_USERAGENT] = $userAgent;
         return $this;
     }
 
@@ -439,7 +508,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public function setReferrer(string $referrer)
     {
-        $this->_curlOptions[\CURLOPT_REFERER] = $referrer;
+        $this->_curlOptions[CURLOPT_REFERER] = $referrer;
         return $this;
     }
 
@@ -450,10 +519,10 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      * @param int $authType CURLAUTH_BASIC CURLAUTH_DIGEST
      * @return $this
      */
-    public function setUserAuth(string $user, string $pwd = '', int $authType = \CURLAUTH_BASIC)
+    public function setUserAuth(string $user, string $pwd = '', int $authType = CURLAUTH_BASIC)
     {
-        $this->_curlOptions[\CURLOPT_HTTPAUTH] = $authType;
-        $this->_curlOptions[\CURLOPT_USERPWD] = "$user:$pwd";
+        $this->_curlOptions[CURLOPT_HTTPAUTH] = $authType;
+        $this->_curlOptions[CURLOPT_USERPWD] = "$user:$pwd";
         return $this;
     }
 
@@ -468,20 +537,20 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     public function setSSLAuth(string $pwd, string $file, string $authType = self::SSL_TYPE_CERT)
     {
         if ($authType !== self::SSL_TYPE_CERT && $authType !== self::SSL_TYPE_KEY) {
-            throw new \InvalidArgumentException('The SSL auth type only allow: cert|key');
+            throw new InvalidArgumentException('The SSL auth type only allow: cert|key');
         }
 
-        if (!\file_exists($file)) {
+        if (!file_exists($file)) {
             $name = $authType === self::SSL_TYPE_CERT ? 'certificate' : 'private key';
-            throw new \InvalidArgumentException("The SSL $name file not found: {$file}");
+            throw new InvalidArgumentException("The SSL $name file not found: {$file}");
         }
 
         if ($authType === self::SSL_TYPE_CERT) {
-            $this->_curlOptions[\CURLOPT_SSLCERTPASSWD] = $pwd;
-            $this->_curlOptions[\CURLOPT_SSLCERT] = $file;
+            $this->_curlOptions[CURLOPT_SSLCERTPASSWD] = $pwd;
+            $this->_curlOptions[CURLOPT_SSLCERT] = $file;
         } else {
-            $this->_curlOptions[\CURLOPT_SSLKEYPASSWD] = $pwd;
-            $this->_curlOptions[\CURLOPT_SSLKEY] = $file;
+            $this->_curlOptions[CURLOPT_SSLKEYPASSWD] = $pwd;
+            $this->_curlOptions[CURLOPT_SSLKEY] = $file;
         }
 
         return $this;
@@ -493,8 +562,8 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public function disableSSLVerify()
     {
-        $this->_curlOptions[\CURLOPT_SSL_VERIFYHOST] = 0;
-        $this->_curlOptions[\CURLOPT_SSL_VERIFYPEER] = false;
+        $this->_curlOptions[CURLOPT_SSL_VERIFYHOST] = 0;
+        $this->_curlOptions[CURLOPT_SSL_VERIFYPEER] = false;
         return $this;
     }
 
@@ -504,7 +573,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public function decodeGzip()
     {
-        $this->_curlOptions[\CURLOPT_ENCODING] = 'gzip';
+        $this->_curlOptions[CURLOPT_ENCODING] = 'gzip';
         return $this;
     }
 
@@ -515,7 +584,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public function onlyReturnBody()
     {
-        $this->_curlOptions[\CURLOPT_HEADER] = false;
+        $this->_curlOptions[CURLOPT_HEADER] = false;
         return $this;
     }
 
@@ -525,8 +594,8 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      */
     public function enableSSLVerify()
     {
-        $this->_curlOptions[\CURLOPT_SSL_VERIFYHOST] = 2;
-        $this->_curlOptions[\CURLOPT_SSL_VERIFYPEER] = true;
+        $this->_curlOptions[CURLOPT_SSL_VERIFYHOST] = 2;
+        $this->_curlOptions[CURLOPT_SSL_VERIFYPEER] = true;
         return $this;
     }
 
@@ -567,5 +636,4 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     {
         return $this->_curlOptions[$name] ?? $default;
     }
-
 }

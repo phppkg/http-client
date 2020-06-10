@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018/11/22
- * Time: 1:59 PM
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Error;
@@ -11,12 +12,13 @@ namespace PhpComp\Http\Client\Error;
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 use Throwable;
+use RuntimeException;
 
 /**
  * Class RequestException
  * @package PhpComp\Http\Client\Error
  */
-class NetworkException extends \RuntimeException implements NetworkExceptionInterface
+class NetworkException extends RuntimeException implements NetworkExceptionInterface
 {
     /**
      * @var RequestInterface

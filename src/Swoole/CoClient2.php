@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2017-08-30
- * Time: 17:26
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Swoole;
@@ -12,6 +13,9 @@ use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientUtil;
 use Swoole\Coroutine\Http2\Client;
 use Swoole\Coroutine\Http2\Request;
+use function class_exists;
+use function strtoupper;
+use function array_merge;
 
 /**
  * Class CoClient2 - http2 client
@@ -30,7 +34,7 @@ class CoClient2 extends AbstractClient
      */
     public static function isAvailable(): bool
     {
-        return \class_exists(Client::class);
+        return class_exists(Client::class);
     }
 
     /**
@@ -45,7 +49,7 @@ class CoClient2 extends AbstractClient
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
     {
         if ($method) {
-            $options['method'] = \strtoupper($method);
+            $options['method'] = strtoupper($method);
         }
 
         // get request url info
@@ -90,21 +94,21 @@ class CoClient2 extends AbstractClient
         return $this;
     }
 
-    private function prepareRequest(Request $request, array $headers, array $options)
+    private function prepareRequest(Request $request, array $headers, array $options): void
     {
         // merge global options data.
-        $options = \array_merge($this->options, $options);
+        $options = array_merge($this->options, $options);
 
         // set method
         $request->method = $this->formatAndCheckMethod($options['method']);
 
         // set headers
-        if ($headers = \array_merge($this->headers, $options['headers'], $headers)) {
+        if ($headers = array_merge($this->headers, $options['headers'], $headers)) {
             $request->headers = $headers;
         }
 
         // set cookies
-        if ($cookies = \array_merge($this->cookies, $options['cookies'])) {
+        if ($cookies = array_merge($this->cookies, $options['cookies'])) {
             $request->cookies = $cookies;
         }
     }

@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018-11-25
- * Time: 14:21
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Test;
@@ -18,7 +19,7 @@ use PhpComp\Http\Client\Client;
  */
 class ClientTest extends TestCase
 {
-    public function testGet()
+    public function testGet(): void
     {
         $url = 'http://www.baidu.com';
         $client = Client::factory([

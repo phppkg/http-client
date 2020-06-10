@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018-11-24
- * Time: 18:59
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Test;
@@ -18,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 class FOpenClientTest extends TestCase
 {
-    public function testGet()
+    public function testGet(): void
     {
         $c = FOpenClient::create();
         $c->get('http://www.baidu.com');

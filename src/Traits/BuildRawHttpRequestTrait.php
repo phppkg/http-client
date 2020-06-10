@@ -1,14 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018-11-23
- * Time: 18:42
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Traits;
 
 use PhpComp\Http\Client\ClientUtil;
+use function http_build_query;
+use function array_merge;
+use function strlen;
+use function sprintf;
+use function implode;
 
 /**
  * Trait BuildRawHttpRequestTrait
@@ -32,12 +38,12 @@ trait BuildRawHttpRequestTrait
         }
 
         // build cookies value
-        if ($cookies = \array_merge($this->cookies, $opts['cookies'])) {
+        if ($cookies = array_merge($this->cookies, $opts['cookies'])) {
             // "Cookie: name=value; name1=value1"
-            $headers['Cookie'] = \http_build_query($cookies, '', '; ');
+            $headers['Cookie'] = http_build_query($cookies, '', '; ');
         }
 
-        $headers = \array_merge($this->headers, $opts['headers'], $headers);
+        $headers = array_merge($this->headers, $opts['headers'], $headers);
         $headers = ClientUtil::ucwordArrayKeys($headers);
 
         if (!isset($headers['Host'])) {
@@ -55,7 +61,7 @@ trait BuildRawHttpRequestTrait
             if ($method === 'POST' || $method === 'PUT' || $method === 'PATCH') {
                 $body = ClientUtil::buildBodyByContentType($headers, $data);
                 // add Content-length
-                $headers['Content-Length'] = \strlen($body);
+                $headers['Content-Length'] = strlen($body);
             } else {
                 $uri = ClientUtil::buildURL($uri, $data);
             }
@@ -69,10 +75,12 @@ trait BuildRawHttpRequestTrait
         $fmtHeaders = $this->formatHeaders($headers);
 
         // eg. "GET / HTTP/1.1\r\nHost: www.example.com\r\n\r\n"
-        return \sprintf(
+        return sprintf(
             "%s %s HTTP/1.1\r\n%s\r\n\r\n%s",
-            $method, $uri, \implode("\r\n", $fmtHeaders), $body
+            $method,
+            $uri,
+            implode("\r\n", $fmtHeaders),
+            $body
         );
     }
-
 }

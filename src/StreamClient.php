@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2017/9/11
- * Time: 下午8:04
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client;
@@ -12,6 +13,21 @@ use PhpComp\Http\Client\Error\ClientException;
 use PhpComp\Http\Client\Error\RequestException;
 use PhpComp\Http\Client\Traits\BuildRawHttpRequestTrait;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
+use InvalidArgumentException;
+use function function_exists;
+use function is_resource;
+use function strtoupper;
+use function array_merge;
+use function sprintf;
+use function stream_socket_client;
+use function stream_set_timeout;
+use function fwrite;
+use function stream_get_meta_data;
+use function feof;
+use function fread;
+use function fclose;
+use const STREAM_CLIENT_CONNECT;
+use const STREAM_CLIENT_PERSISTENT;
 
 /**
  * Class StreamClient
@@ -43,7 +59,7 @@ class StreamClient extends AbstractClient
      */
     public static function isAvailable(): bool
     {
-        return \function_exists('stream_socket_client');
+        return function_exists('stream_socket_client');
     }
 
     /**
@@ -57,8 +73,8 @@ class StreamClient extends AbstractClient
             $context = $opts['streamContext'];
 
             // Suppress the error since we'll catch it below
-            if (\is_resource($context) && get_resource_type($context) !== 'stream-context') {
-                throw new \InvalidArgumentException("Stream context in options[streamContext] isn't a valid context resource");
+            if (is_resource($context) && get_resource_type($context) !== 'stream-context') {
+                throw new InvalidArgumentException("Stream context in options[streamContext] isn't a valid context resource");
             }
         } else {
             $context = StreamContext::create();
@@ -73,7 +89,7 @@ class StreamClient extends AbstractClient
 
         // 设置代理
         if ($proxy = $opts['proxy']) {
-            $httpOptions['proxy'] = \sprintf('tcp://%s:%d', $proxy['host'], (int)$proxy['port']);
+            $httpOptions['proxy'] = sprintf('tcp://%s:%d', $proxy['host'], (int)$proxy['port']);
         }
 
         StreamContext::setHTTPOptions($context, $httpOptions);
@@ -99,29 +115,29 @@ class StreamClient extends AbstractClient
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
     {
         if ($method) {
-            $options['method'] = \strtoupper($method);
+            $options['method'] = strtoupper($method);
         }
 
         // merge global options data.
-        $options = \array_merge($this->options, $options);
+        $options = array_merge($this->options, $options);
 
         // get request url info
         $info = ClientUtil::parseUrl($this->buildFullUrl($url));
         $ctx = $this->buildStreamContext($options);
 
         $timeout = (int)$options['timeout'];
-        $socketUrl = \sprintf('tcp://%s:%d', $info['host'], (int)$info['port']);
-        $flags = \STREAM_CLIENT_CONNECT;
+        $socketUrl = sprintf('tcp://%s:%d', $info['host'], (int)$info['port']);
+        $flags = STREAM_CLIENT_CONNECT;
 
         if (isset($options['persistent']) && $options['persistent']) {
-            $flags = \STREAM_CLIENT_PERSISTENT;
+            $flags = STREAM_CLIENT_PERSISTENT;
         }
 
         /*
          * create stream socket client
          * flags: STREAM_CLIENT_CONNECT (default), STREAM_CLIENT_ASYNC_CONNECT and STREAM_CLIENT_PERSISTENT.
          */
-        $handle = \stream_socket_client($socketUrl, $errno, $error, $timeout, $flags, $ctx);
+        $handle = stream_socket_client($socketUrl, $errno, $error, $timeout, $flags, $ctx);
 
         // if create failure
         if (!$handle) {
@@ -131,22 +147,22 @@ class StreamClient extends AbstractClient
         $string = $this->buildRawHttpData($info, $headers, $options, $data);
 
         // set timeout
-        \stream_set_timeout($handle, $timeout);
+        stream_set_timeout($handle, $timeout);
 
         // send request
-        if (false === \fwrite($handle, $string)) {
+        if (false === fwrite($handle, $string)) {
             throw new RequestException('send request to server is failure');
         }
 
         // save some info
-        $this->responseInfo = \stream_get_meta_data($handle);
+        $this->responseInfo = stream_get_meta_data($handle);
 
         // read response
-        while (!\feof($handle)) {
-            $this->rawResponse .= \fread($handle, 4096);
+        while (!feof($handle)) {
+            $this->rawResponse .= fread($handle, 4096);
         }
 
-        \fclose($handle);
+        fclose($handle);
 
         // parse raw response
         $this->parseResponse();

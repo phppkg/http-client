@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018-11-23
- * Time: 19:29
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client;
@@ -11,6 +12,11 @@ namespace PhpComp\Http\Client;
 use PhpComp\Http\Client\Error\ClientException;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
 use PhpComp\Http\Client\Traits\StreamContextBuildTrait;
+use Throwable;
+use function function_exists;
+use function strtoupper;
+use function array_merge;
+use function file_get_contents;
 
 /**
  * Class FileClient - powered by func file_get_contents()
@@ -25,7 +31,7 @@ class FileClient extends AbstractClient
      */
     public static function isAvailable(): bool
     {
-        return \function_exists('file_get_contents');
+        return function_exists('file_get_contents');
     }
 
     /**
@@ -34,27 +40,27 @@ class FileClient extends AbstractClient
     public function request(string $url, $data = null, string $method = self::GET, array $headers = [], array $options = [])
     {
         if ($method) {
-            $options['method'] = \strtoupper($method);
+            $options['method'] = strtoupper($method);
         }
 
         // get request url info
         $url = $this->buildFullUrl($url);
 
         // merge global options data.
-        $options = \array_merge($this->options, $options);
+        $options = array_merge($this->options, $options);
 
         try {
             $ctx = $this->buildStreamContext($url, $headers, $options, $data);
             $fullUrl = ClientUtil::encodeURL($this->fullUrl);
 
             // send request
-            $this->responseBody = \file_get_contents($fullUrl, false, $ctx);
+            $this->responseBody = file_get_contents($fullUrl, false, $ctx);
 
             // false is failure
             if ($this->responseBody === false) {
                 $this->responseBody = '';
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         }
 

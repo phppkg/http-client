@@ -1,21 +1,24 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * Created by PhpStorm.
- * User: inhere
- * Date: 2018/11/22
- * Time: 1:59 PM
+ * This file is part of php-comp/http-client.
+ *
+ * @author   https://github.com/inhere
+ * @link     https://github.com/php-comp/http-client
+ * @license  MIT
  */
 
 namespace PhpComp\Http\Client\Error;
 
 use Psr\Http\Client\RequestExceptionInterface;
 use Psr\Http\Message\RequestInterface;
+use RuntimeException;
+use Throwable;
 
 /**
  * Class RequestException
  * @package PhpComp\Http\Client\Error
  */
-class RequestException extends \RuntimeException implements RequestExceptionInterface
+class RequestException extends RuntimeException implements RequestExceptionInterface
 {
     /**
      * @var RequestInterface
@@ -26,10 +29,10 @@ class RequestException extends \RuntimeException implements RequestExceptionInte
      * NetworkException constructor.
      * @param string $message
      * @param int $code
-     * @param \Throwable|null $previous
+     * @param Throwable|null $previous
      * @param RequestInterface|null $request
      */
-    public function __construct(string $message = '', int $code = 0, \Throwable $previous = null, RequestInterface $request = null)
+    public function __construct(string $message = '', int $code = 0, Throwable $previous = null, RequestInterface $request = null)
     {
         $this->request = $request;
         parent::__construct($message, $code, $previous);
