@@ -62,8 +62,8 @@ class FSockClient extends AbstractClient
     /**
      * Send request to remote URL
      *
-     * @param        $url
-     * @param array  $data
+     * @param string $url
+     * @param null   $data
      * @param string $method
      * @param array  $headers
      * @param array  $options
@@ -131,7 +131,7 @@ class FSockClient extends AbstractClient
      */
     public function resetResponse(): ClientInterface
     {
-        $this->rawResponse = '';
+        $this->rawResponse    = '';
         $this->responseParsed = false;
 
         parent::resetResponse();

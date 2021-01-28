@@ -9,7 +9,6 @@
 
 namespace PhpComp\Http\Client\Swoole;
 
-use Exception;
 use PhpComp\Http\Client\AbstractClient;
 use PhpComp\Http\Client\ClientInterface;
 use PhpComp\Http\Client\ClientUtil;
@@ -73,8 +72,8 @@ class CoClient extends AbstractClient
     /**
      * Send request to remote URL
      *
-     * @param        $url
-     * @param array  $data
+     * @param string $url
+     * @param null   $data
      * @param string $method
      * @param array  $headers
      * @param array  $options

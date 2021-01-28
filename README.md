@@ -1,8 +1,10 @@
 # HTTP Client 
 
 [![License](https://img.shields.io/packagist/l/php-comp/http-client.svg?style=flat-square)](LICENSE)
-[![Php Version](https://img.shields.io/badge/php-%3E=7.0-brightgreen.svg?maxAge=2592000)](https://packagist.org/packages/php-comp/http-client)
+[![Php Version](https://img.shields.io/badge/php-%3E=7.1-brightgreen.svg?maxAge=2592000)](https://packagist.org/packages/php-comp/http-client)
 [![Latest Stable Version](http://img.shields.io/packagist/v/php-comp/http-client.svg)](https://packagist.org/packages/php-comp/http-client)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/ulue/phpgit)](https://github.com/ulue/phpgit)
+[![Github Actions Status](https://github.com/ulue/phpgit/workflows/Unit-tests/badge.svg)](https://github.com/ulue/phpgit/actions)
 
 PHP http client library.
 
@@ -22,6 +24,8 @@ composer require php-comp/http-client
 ### 创建客户端实例
 
 ```php
+use PhpComp\Http\Client\Client;
+
 // use factory
 $client = Client::factory([
     'driver' => 'curl', // stream, fsock, fopen, file, co, co2
@@ -44,6 +48,10 @@ $client = CoClient::create($options);
 ### 基本使用
 
 ```php
+use PhpComp\Http\Client\Client;
+
+$client = Client::factory([]);
+
 $client->get('/users/1');
 
 $post = ['name' => 'john'];
@@ -53,6 +61,8 @@ $client->post('/users/1', $post);
 $client->byAjax()->post('/users/1', $post);
 
 // add json content type
+$client->json('/users/1', json_encode($post));
+// or
 $client->byJson()->post('/users/1', json_encode($post));
 
 $statusCode = $client->getStatusCode();

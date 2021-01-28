@@ -10,7 +10,6 @@
 namespace PhpComp\Http\Client;
 
 use Closure;
-use Exception;
 use InvalidArgumentException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -208,7 +207,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return array
      */
-    public static function getSupportedMethods()
+    public static function getSupportedMethods(): array
     {
         return self::$supportedMethods;
     }
@@ -308,8 +307,6 @@ abstract class AbstractClient implements ClientInterface
      * @param RequestInterface $request
      *
      * @return ResponseInterface
-     *
-     * @throws \Psr\Http\Client\ClientExceptionInterface If an error happens while processing the request.
      */
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
@@ -321,6 +318,23 @@ abstract class AbstractClient implements ClientInterface
         $this->request($request->getRequestTarget(), (string)$request->getBody(), $request->getMethod());
 
         return $this->getPsr7Response();
+    }
+
+    /**
+     * @param string $url
+     * @param mixed   $data
+     * @param array  $headers
+     * @param array  $options
+     *
+     * @return ClientInterface
+     */
+    public function json(string $url, $data = null, array $headers = [], array $options = []): ClientInterface
+    {
+        if (!isset($options['method'])) {
+            $options['method'] = 'POST';
+        }
+
+        return $this->byJson()->request($url, $data, $options['method'], $headers, $options);
     }
 
     /**
@@ -363,7 +377,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setTimeout(int $seconds)
+    public function setTimeout(int $seconds): self
     {
         $this->options['timeout'] = $seconds;
         return $this;
@@ -374,7 +388,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function SSLVerify(bool $enable)
+    public function SSLVerify(bool $enable): self
     {
         $this->options['sslVerify'] = $enable;
         return $this;
@@ -435,7 +449,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function byJson()
+    public function byJson(): self
     {
         $this->setHeader('Content-Type', 'application/json; charset=utf-8');
         return $this;
@@ -444,7 +458,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function byXhr()
+    public function byXhr(): self
     {
         return $this->byAjax();
     }
@@ -452,7 +466,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function byAjax()
+    public function byAjax(): self
     {
         $this->setHeader('X-Requested-With', 'XMLHttpRequest');
         return $this;
@@ -478,7 +492,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setUserAuth(string $user, string $pwd = '', int $authType = self::AUTH_BASIC)
+    public function setUserAuth(string $user, string $pwd = '', int $authType = self::AUTH_BASIC): AbstractClient
     {
         if ($authType === self::AUTH_BASIC) {
             $sign = 'Basic ' . base64_encode("$user:$pwd");
@@ -613,7 +627,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return string
      */
-    protected function buildFullUrl(string $url, $data = null)
+    protected function buildFullUrl(string $url, $data = null): string
     {
         $url = trim($url);
 
@@ -775,7 +789,7 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param int|string $name
-     * @param bool       $default
+     * @param null       $default
      *
      * @return mixed
      */

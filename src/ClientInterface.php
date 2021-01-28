@@ -162,9 +162,9 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param array|string|null $data
      * @param string            $method
      * @param array             $headers
-     * @param array             $options
+     * @param array             $options All options please {@see AbstractClient::$defaultOptions}
      *
-     * @return self
+     * @return ClientInterface
      */
     public function request(
         string $url,

@@ -72,8 +72,8 @@ class FOpenClient extends AbstractClient
     /**
      * Send request to remote URL
      *
-     * @param        $url
-     * @param array  $data
+     * @param string $url
+     * @param null   $data
      * @param string $method
      * @param array  $headers
      * @param array  $options

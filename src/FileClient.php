@@ -56,7 +56,7 @@ class FileClient extends AbstractClient
         $options = array_merge($this->options, $options);
 
         try {
-            $ctx = $this->buildStreamContext($url, $headers, $options, $data);
+            $ctx     = $this->buildStreamContext($url, $headers, $options, $data);
             $fullUrl = ClientUtil::encodeURL($this->fullUrl);
 
             // send request

@@ -236,12 +236,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         }
 
         // create file
-        if (function_exists('curl_file_create')) {
-            $file = curl_file_create($filePath, $mimeType); // , $postFilename
-        } else {
-            $this->setCurlOption(CURLOPT_SAFE_UPLOAD, true);
-            $file = "@{$filePath};type={$mimeType}"; // ;filename={$postFilename}
-        }
+        $file = curl_file_create($filePath, $mimeType); // , $postFilename
 
         $headers = [
             'Content-Type' => 'multipart/form-data'
@@ -259,7 +254,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return string
      */
-    public function downloadImage(string $imgUrl, string $saveDir, string $rename = '')
+    public function downloadImage(string $imgUrl, string $saveDir, string $rename = ''): string
     {
         // e.g. http://static.oschina.net/uploads/user/277/554046_50.jpg?t=34512323
         if (strpos($imgUrl, '?')) {
@@ -536,7 +531,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return $this
      */
-    public function setUserAuth(string $user, string $pwd = '', int $authType = CURLAUTH_BASIC): ClientInterface
+    public function setUserAuth(string $user, string $pwd = '', int $authType = CURLAUTH_BASIC): AbstractClient
     {
         $this->_curlOptions[CURLOPT_HTTPAUTH] = $authType;
         $this->_curlOptions[CURLOPT_USERPWD]  = "$user:$pwd";
@@ -552,7 +547,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return $this
      */
-    public function setSSLAuth(string $pwd, string $file, string $authType = self::SSL_TYPE_CERT): ClientInterface
+    public function setSSLAuth(string $pwd, string $file, string $authType = self::SSL_TYPE_CERT): AbstractClient
     {
         if ($authType !== self::SSL_TYPE_CERT && $authType !== self::SSL_TYPE_KEY) {
             throw new InvalidArgumentException('The SSL auth type only allow: cert|key');
@@ -653,7 +648,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
     /**
      * @param int|string $name
-     * @param bool       $default
+     * @param null       $default
      *
      * @return mixed
      */

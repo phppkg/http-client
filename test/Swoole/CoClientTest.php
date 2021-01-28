@@ -25,6 +25,10 @@ class CoClientTest extends TestCase
 {
     protected function tearDown(): void
     {
+        if (!CoClient::isAvailable()) {
+            return;
+        }
+
         // parent::tearDown();
         Timer::after(3 * 1000, function (): void {
             swoole_event_exit();

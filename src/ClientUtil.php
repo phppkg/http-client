@@ -103,8 +103,8 @@ class ClientUtil
     }
 
     /**
-     * @param string       $url
-     * @param array|object $data
+     * @param string $url
+     * @param null   $data
      *
      * @return string
      */

@@ -25,7 +25,7 @@ class CurlClientTest extends TestCase
         $c = CurlClient::create();
         $c->decodeGzip()
             // ->onlyReturnBody()
-          ->get('http://www.baidu.com');
+            ->get('http://www.baidu.com');
 
         $this->assertFalse($c->isError());
         $this->assertEquals(200, $c->getStatusCode());

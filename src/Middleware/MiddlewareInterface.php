@@ -15,7 +15,7 @@ interface MiddlewareInterface
 {
     /**
      * @param RequestInterface $request
-     * @param Closure         $next
+     * @param Closure          $next
      *
      * @return ResponseInterface
      */

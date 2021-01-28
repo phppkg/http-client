@@ -152,7 +152,7 @@ class CurlMulti // extends CurlLite
      *
      * @return $this
      */
-    public function append(string $url, $data = null, array $headers = [], array $options = [])
+    public function append(string $url, $data = null, array $headers = [], array $options = []): self
     {
         $options       = array_merge($this->options, $options);
         $this->chMap[] = $ch = $this->createResource($url, $data, $headers, $options);

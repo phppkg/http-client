@@ -32,7 +32,7 @@ use function method_exists;
 class Client
 {
     /**
-     * supported drivers
+     * The supported drivers
      *
      * @var ClientInterface[]
      */
