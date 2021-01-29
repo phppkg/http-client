@@ -3,10 +3,10 @@
 [![License](https://img.shields.io/packagist/l/php-comp/http-client.svg?style=flat-square)](LICENSE)
 [![Php Version](https://img.shields.io/badge/php-%3E=7.1-brightgreen.svg?maxAge=2592000)](https://packagist.org/packages/php-comp/http-client)
 [![Latest Stable Version](http://img.shields.io/packagist/v/php-comp/http-client.svg)](https://packagist.org/packages/php-comp/http-client)
-[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/ulue/phpgit)](https://github.com/ulue/phpgit)
-[![Github Actions Status](https://github.com/ulue/phpgit/workflows/Unit-tests/badge.svg)](https://github.com/ulue/phpgit/actions)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/php-comp/http-client)](https://github.com/php-comp/http-client)
+[![Github Actions Status](https://github.com/php-comp/http-client/workflows/Unit-tests/badge.svg)](https://github.com/php-comp/http-client/actions)
 
-PHP http client library.
+PHP HTTP client library.
 
 - 可用的驱动包括: `curl` `swoole` `fsockopen` `stream` `fopen`
 - 支持 `GET,POST,PATCH,PUT,HEAD,DELETE` 等请求方法
