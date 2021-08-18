@@ -194,7 +194,7 @@ class CoClient extends AbstractClient
         $client->set($coOptions);
 
         // set method
-        $method = $this->formatAndCheckMethod($options['method']);
+        $method = ClientUtil::formatAndCheckMethod($options['method']);
         $client->setMethod($method);
 
         // set headers

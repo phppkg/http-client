@@ -43,6 +43,23 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public const SEARCH = 'SEARCH';
 
     /**
+     * @var array
+     */
+    public const SUPPORTED_METHODS = [
+        // method => allow post data(POST,PUT,PATCH)
+        'POST'    => true,
+        'PUT'     => true,
+        'PATCH'   => true,
+        'GET'     => false,
+        'DELETE'  => false,
+        'HEAD'    => false,
+        'OPTIONS' => false,
+        'TRACE'   => false,
+        'SEARCH'  => false,
+        'CONNECT' => false,
+    ];
+
+    /**
      * @param array $options
      *
      * @return ClientInterface

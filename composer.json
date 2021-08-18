@@ -1,11 +1,12 @@
 {
   "name": "php-comp/http-client",
   "type": "library",
-  "description": "an simple http client library of the php",
+  "description": "simple http client library of the php",
   "keywords": [
     "library",
     "tool",
     "http",
+    "fopen",
     "curl"
   ],
   "homepage": "https://github.com/php-comp/http-client",
@@ -19,7 +20,8 @@
   ],
   "require": {
     "php": ">7.1.1",
-    "psr/http-client": "^1.0"
+    "psr/http-client": "^1.0",
+    "toolkit/stdlib": "^1.0"
   },
   "autoload": {
     "psr-4": {

@@ -53,7 +53,7 @@ trait BuildRawHttpRequestTrait
             $headers['Host'] = $info['host'];
         }
 
-        $method = $this->formatAndCheckMethod($opts['method']);
+        $method = ClientUtil::formatAndCheckMethod($opts['method']);
 
         // $heads[] = "Host: www.example.com\r\n";
         // $heads[] = "Connection: Close\r\n";
@@ -75,7 +75,7 @@ trait BuildRawHttpRequestTrait
             $headers['Connection'] = 'close';
         }
 
-        $fmtHeaders = $this->formatHeaders($headers);
+        $fmtHeaders = ClientUtil::formatHeaders($headers);
 
         // eg. "GET / HTTP/1.1\r\nHost: www.example.com\r\n\r\n"
         return sprintf("%s %s HTTP/1.1\r\n%s\r\n\r\n%s", $method, $uri, implode("\r\n", $fmtHeaders), $body);

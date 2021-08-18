@@ -9,17 +9,19 @@
 
 namespace PhpComp\Http\Client;
 
+use InvalidArgumentException;
 use PhpComp\Http\Client\Exception\ClientException;
+use Toolkit\Stdlib\Helper\JsonHelper;
 use function array_merge;
 use function http_build_query;
 use function is_scalar;
-use function json_encode;
 use function mb_convert_encoding;
 use function parse_url;
 use function rawurlencode;
 use function str_replace;
 use function stripos;
 use function strpos;
+use function strtoupper;
 use function trim;
 use function ucwords;
 use function urldecode;
@@ -213,7 +215,7 @@ class ClientUtil
 
             // application/json
             if (stripos($ct, 'json')) {
-                return (string)json_encode($data);
+                return JsonHelper::encode($data);
             }
         } else {
             $headers['Content-Type'] = $defContentType;
@@ -221,4 +223,39 @@ class ClientUtil
 
         return http_build_query($data);
     }
+
+    /**
+     * convert [key => val] to ["key: val"]
+     *
+     * @param array $headers
+     *
+     * @return array
+     */
+    public static function formatHeaders(array $headers): array
+    {
+        $formatted = [];
+        foreach ($headers as $name => $value) {
+            $name = ucwords($name);
+            // append
+            $formatted[] = "$name: $value";
+        }
+
+        return $formatted;
+    }
+
+    /**
+     * @param string $method
+     *
+     * @return string
+     */
+    public static function formatAndCheckMethod(string $method): string
+    {
+        $method = strtoupper($method);
+        if (!isset(ClientInterface::SUPPORTED_METHODS[$method])) {
+            throw new InvalidArgumentException("The method [$method] is not supported!");
+        }
+
+        return $method;
+    }
+
 }

@@ -83,7 +83,7 @@ class StreamClient extends AbstractClient
             $context = StreamContext::create();
         }
 
-        $method      = $this->formatAndCheckMethod($opts['method']);
+        $method      = ClientUtil::formatAndCheckMethod($opts['method']);
         $httpOptions = [
             'method'  => $method,
             'timeout' => (int)$opts['timeout'],

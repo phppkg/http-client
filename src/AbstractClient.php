@@ -27,7 +27,6 @@ use function ltrim;
 use function str_replace;
 use function strrpos;
 use function strtolower;
-use function strtoupper;
 use function substr;
 use function trim;
 use function ucwords;
@@ -39,23 +38,6 @@ use function ucwords;
  */
 abstract class AbstractClient implements ClientInterface
 {
-    /**
-     * @var array
-     */
-    protected static $supportedMethods = [
-        // method => allow post data(POST,PUT,PATCH)
-        'POST'    => true,
-        'PUT'     => true,
-        'PATCH'   => true,
-        'GET'     => false,
-        'DELETE'  => false,
-        'HEAD'    => false,
-        'OPTIONS' => false,
-        'TRACE'   => false,
-        'SEARCH'  => false,
-        'CONNECT' => false,
-    ];
-
     /**
      * for create psr7 ResponseInterface instance
      *
@@ -209,23 +191,7 @@ abstract class AbstractClient implements ClientInterface
      */
     public static function getSupportedMethods(): array
     {
-        return self::$supportedMethods;
-    }
-
-    /**
-     * @param string $method
-     *
-     * @return string
-     */
-    protected function formatAndCheckMethod(string $method): string
-    {
-        $method = strtoupper($method);
-
-        if (!isset(self::$supportedMethods[$method])) {
-            throw new InvalidArgumentException("The method type [$method] is not supported!");
-        }
-
-        return $method;
+        return self::SUPPORTED_METHODS;
     }
 
     /**************************************************************************
@@ -533,24 +499,6 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * convert [key => val] to ["key: val"]
-     *
-     * @param array $headers
-     *
-     * @return array
-     */
-    public function formatHeaders(array $headers): array
-    {
-        $formatted = [];
-        foreach ($headers as $name => $value) {
-            $name        = ucwords($name);
-            $formatted[] = "$name: $value";
-        }
-
-        return $formatted;
-    }
-
-    /**
      * set Headers
      *
      * @inheritdoc
@@ -823,7 +771,7 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * @param bool $debug
+     * @param bool|mixed $debug
      *
      * @return $this
      */
@@ -853,17 +801,17 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * @return bool|array
+     * @return array
      */
-    public function getArrayData()
+    public function getArrayData(): array
     {
         return $this->getJsonArray();
     }
 
     /**
-     * @return bool|array
+     * @return array
      */
-    public function getJsonArray()
+    public function getJsonArray(): array
     {
         if (!$body = $this->getResponseBody()) {
             return [];
@@ -871,7 +819,7 @@ abstract class AbstractClient implements ClientInterface
 
         $data = json_decode($body, true);
         if (json_last_error() > 0) {
-            return false;
+            return [];
         }
 
         return $data;

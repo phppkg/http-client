@@ -68,7 +68,7 @@ trait StreamContextBuildTrait
         }
 
         $body   = '';
-        $method = $this->formatAndCheckMethod($opts['method']);
+        $method = ClientUtil::formatAndCheckMethod($opts['method']);
 
         $this->fullUrl = $fullUrl;
 
@@ -86,7 +86,7 @@ trait StreamContextBuildTrait
         $httpOptions = [
             'method'  => $method,
             'timeout' => (int)$opts['timeout'], // 超时
-            'header'  => $this->formatHeaders($headers),
+            'header'  => ClientUtil::formatHeaders($headers),
             'content' => $body,
         ];
 

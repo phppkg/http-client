@@ -31,7 +31,6 @@ use function file_exists;
 use function file_put_contents;
 use function finfo_file;
 use function finfo_open;
-use function function_exists;
 use function http_build_query;
 use function in_array;
 use function pathinfo;
@@ -378,7 +377,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
         // merge global options.
         $options = array_merge($this->options, $options);
-        $method  = $this->formatAndCheckMethod($options['method']);
+        $method  = ClientUtil::formatAndCheckMethod($options['method']);
 
         switch ($method) {
             case 'GET':
@@ -404,7 +403,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         // add send data
         if ($data) {
             // allow post data
-            if (self::$supportedMethods[$method]) {
+            if (self::SUPPORTED_METHODS[$method]) {
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
             } else {
                 $url = ClientUtil::buildURL($url, $data);
@@ -423,7 +422,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
         // append http headers
         if ($headers = array_merge($this->headers, $options['headers'], $headers)) {
-            $curlOptions[CURLOPT_HTTPHEADER] = $this->formatHeaders($headers);
+            $curlOptions[CURLOPT_HTTPHEADER] = ClientUtil::formatHeaders($headers);
         }
 
         // append http cookies

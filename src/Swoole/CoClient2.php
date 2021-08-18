@@ -112,7 +112,7 @@ class CoClient2 extends AbstractClient
         $options = array_merge($this->options, $options);
 
         // set method
-        $request->method = $this->formatAndCheckMethod($options['method']);
+        $request->method = ClientUtil::formatAndCheckMethod($options['method']);
 
         // set headers
         if ($headers = array_merge($this->headers, $options['headers'], $headers)) {
