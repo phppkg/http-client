@@ -415,7 +415,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function byJson(): self
+    public function withJsonType(): self
     {
         $this->setHeader('Content-Type', 'application/json; charset=utf-8');
         return $this;
@@ -424,15 +424,31 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
+    public function byJson(): self
+    {
+        return $this->withJsonType();
+    }
+
+    /**
+     * @return $this
+     */
     public function byXhr(): self
     {
-        return $this->byAjax();
+        return $this->withAjax();
     }
 
     /**
      * @return $this
      */
     public function byAjax(): self
+    {
+        return $this->withAjax();
+    }
+
+    /**
+     * @return $this
+     */
+    public function withAjax(): self
     {
         $this->setHeader('X-Requested-With', 'XMLHttpRequest');
         return $this;

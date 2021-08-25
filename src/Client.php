@@ -65,7 +65,7 @@ class Client
      *  // ...
      *  ]
      *
-     * @return ClientInterface
+     * @return ClientInterface|AbstractClient
      */
     public static function factory(array $config): ClientInterface
     {
