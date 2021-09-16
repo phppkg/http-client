@@ -53,7 +53,7 @@ trait ParseRawResponseTrait
 
         // Extract headers from response
         preg_match_all($pattern, $response, $matches);
-        $headersString = array_pop($matches[0]);
+        $headersString = (string)array_pop($matches[0]);
 
         $headers = explode("\r\n", str_replace("\r\n\r\n", '', $headersString));
         // parse headers

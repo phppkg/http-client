@@ -68,7 +68,6 @@ use const CURLOPT_PROXYPORT;
 use const CURLOPT_PUT;
 use const CURLOPT_REFERER;
 use const CURLOPT_RETURNTRANSFER;
-use const CURLOPT_SAFE_UPLOAD;
 use const CURLOPT_SSL_VERIFYHOST;
 use const CURLOPT_SSL_VERIFYPEER;
 use const CURLOPT_SSLCERT;
@@ -338,7 +337,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
             $this->setResponseParsed(true);
         } else {
             // if CURLOPT_HEADER is TRUE, The raw response data contains headers and body
-            $this->rawResponse = (string)$response;
+            $this->rawResponse = $response;
             $this->parseResponse(); // parse raw response data
         }
 
