@@ -238,6 +238,21 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      */
     public function setUserAgent(string $userAgent): ClientInterface;
 
+    /**
+     * @param array $options
+     *
+     * @return ClientInterface
+     */
+    public function setOptions(array $options): ClientInterface;
+
+    /**
+     * @param string $key
+     * @param $value
+     *
+     * @return ClientInterface
+     */
+    public function setOption(string $key, $value): ClientInterface;
+
     /**************************************************************************
      * request cookies
      *************************************************************************/

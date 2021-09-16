@@ -37,12 +37,12 @@ class Client
      * @var ClientInterface[]
      */
     private static $drivers = [
-        'co'     => CoClient::class,
         'curl'   => CurlClient::class,
         'stream' => StreamClient::class,
         'fsock'  => FSockClient::class,
         'fopen'  => FOpenClient::class,
         'file'   => FileClient::class,
+        'co'     => CoClient::class,
         'co2'    => CoClient2::class,
     ];
 
@@ -76,6 +76,7 @@ class Client
             foreach (self::$drivers as $driverClass) {
                 if ($driverClass::isAvailable()) {
                     $class = $driverClass;
+                    break;
                 }
             }
         } else {
@@ -122,13 +123,9 @@ class Client
      */
     public static function __callStatic(string $method, array $args)
     {
+        // if no default driver, create it.
         if (!$client = self::$defaultDriver) {
-            // has config, create driver instance from config.
-            if (!$config = self::$defaultConfig) {
-                throw new RuntimeException('must be setting default client driver before call');
-            }
-
-            $client = self::factory($config);
+            $client = self::$defaultDriver = self::factory(self::$defaultConfig);
         }
 
         if (method_exists($client, $method)) {

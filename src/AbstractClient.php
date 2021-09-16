@@ -15,6 +15,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 use stdClass;
+use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function base64_encode;
 use function fclose;
@@ -596,17 +597,17 @@ abstract class AbstractClient implements ClientInterface
         $url = trim($url);
 
         // is a url part.
-        if ($this->baseUrl && !ClientUtil::isFullURL($url)) {
+        if ($this->baseUrl && !UrlHelper::isFullURL($url)) {
             $url = $this->baseUrl . '/' . ltrim($url, '/');
         }
 
         // check again
-        if (!ClientUtil::isFullURL($url)) {
+        if (!UrlHelper::isFullURL($url)) {
             throw new RuntimeException("The request url is not full, URL $url");
         }
 
         if ($data) {
-            return ClientUtil::buildURL($url, $data);
+            return UrlHelper::build($url, $data);
         }
 
         return $url;
@@ -772,10 +773,25 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param array $options
+     *
+     * @return ClientInterface
      */
-    public function setOptions(array $options): void
+    public function setOptions(array $options): ClientInterface
     {
         $this->options = array_merge($this->options, $options);
+        return $this;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     *
+     * @return ClientInterface
+     */
+    public function setOption(string $key, $value): ClientInterface
+    {
+        $this->options[$key] = $value;
+        return $this;
     }
 
     /**

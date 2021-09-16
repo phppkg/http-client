@@ -18,6 +18,7 @@ use function array_merge;
 use function class_exists;
 use function socket_strerror;
 use function strtoupper;
+use function vdump;
 
 /**
  * Class CoClient
@@ -73,7 +74,7 @@ class CoClient extends AbstractClient
      * Send request to remote URL
      *
      * @param string $url
-     * @param null   $data
+     * @param mixed  $data
      * @param string $method
      * @param array  $headers
      * @param array  $options
@@ -87,6 +88,34 @@ class CoClient extends AbstractClient
         array $headers = [],
         array $options = []
     ): ClientInterface {
+        // not in coroutine env
+        if (\Swoole\Coroutine::getCid() < 0) {
+            \Swoole\Coroutine\run(function () use ($url, $data, $method, $headers, $options) {
+                $this->doRequest($url, $data, $method, $headers, $options);
+            });
+        } else {
+            // do send request.
+            $this->doRequest($url, $data, $method, $headers, $options);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param string $url
+     * @param null|mixed $data
+     * @param string $method
+     * @param array $headers
+     * @param array $options
+     */
+    protected function doRequest(
+        string $url,
+        $data = null,
+        string $method = self::GET,
+        array $headers = [],
+        array $options = []
+    ): void
+    {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
@@ -120,7 +149,6 @@ class CoClient extends AbstractClient
         }
 
         $this->client = $client;
-        return $this;
     }
 
     /**
@@ -220,7 +248,7 @@ class CoClient extends AbstractClient
     {
         // check error
         if ($errno = $client->errCode) {
-            throw new ClientException(socket_strerror($client->errCode), $errno);
+            throw new ClientException(socket_strerror($errno), $errno);
         }
 
         $this->statusCode      = $client->statusCode;

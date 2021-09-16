@@ -15,6 +15,7 @@ use PhpComp\Http\Client\ClientInterface;
 use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\Exception\ClientException;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
+use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function curl_close;
 use function curl_errno;
@@ -418,7 +419,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         }
 
         // set request url
-        $curlOptions[CURLOPT_URL] = ClientUtil::encodeURL($url);
+        $curlOptions[CURLOPT_URL] = UrlHelper::encode2($url);
 
         // append http headers
         if ($headers = array_merge($this->headers, $options['headers'], $headers)) {

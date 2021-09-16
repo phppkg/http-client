@@ -12,6 +12,7 @@ namespace PhpComp\Http\Client;
 use InvalidArgumentException;
 use PhpComp\Http\Client\Exception\ClientException;
 use Toolkit\Stdlib\Helper\JsonHelper;
+use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function http_build_query;
 use function is_scalar;
@@ -78,13 +79,14 @@ class ClientUtil
      */
     public static function isFullURL(string $url): bool
     {
-        return 0 === strpos($url, 'http:') || 0 === strpos($url, 'https:') || 0 === strpos($url, '//');
+        return UrlHelper::isFullUrl($url);
     }
 
     /**
      * @param string $url
      *
      * @return array
+     * @deprecated please use UrlHelper::parse2($url);
      */
     public static function parseUrl(string $url): array
     {
@@ -93,15 +95,13 @@ class ClientUtil
             throw new ClientException('invalid request url: ' . $url);
         }
 
-        $info = array_merge([
+        return array_merge([
             'scheme' => 'http',
             'host'   => '',
             'port'   => 80,
             'path'   => '/',
             'query'  => '',
         ], $info);
-
-        return $info;
     }
 
     /**
@@ -119,75 +119,19 @@ class ClientUtil
         return $url;
     }
 
-    // Build arrays of values we need to decode before parsing
-    protected static $entities = [
-        '%21',
-        '%2A',
-        '%27',
-        '%28',
-        '%29',
-        '%3B',
-        '%3A',
-        '%40',
-        '%26',
-        '%3D',
-        '%24',
-        '%2C',
-        '%2F',
-        '%3F',
-        '%23',
-        '%5B',
-        '%5D'
-    ];
-
-    protected static $replacements = [
-        '!',
-        '*',
-        "'",
-        '(',
-        ')',
-        ';',
-        ':',
-        '@',
-        '&',
-        '=',
-        '$',
-        ',',
-        '/',
-        '?',
-        '#',
-        '[',
-        ']'
-    ];
-
     /**
-     * [urlEncode 会先转换编码]
-     * $url="ftp://ud03:password@www.xxx.net/中文/中文.rar";
-     * $url1 =  url_encode($url);
-     * //ftp://ud03:password@www.xxx.net/%C3%A4%C2%B8%C2%AD%C3%A6%C2%96%C2%87/%C3%A4%C2%B8%C2%AD%C3%A6%C2%96%C2%87.rar
-     * $url2 =  urldecode($url);
-     * echo $url1.PHP_EOL.$url2;
+     * @param string $url
      *
-     * @param string $url [description]
-     *
-     * @return mixed|string [type]      [description]
+     * @return string
+     * @deprecated please use UrlHelper::encode2($url);
      */
-    public static function encodeURL(string $url)
+    public static function encodeURL(string $url): string
     {
-        if (!$url = trim($url)) {
-            return '';
-        }
-
-        // 若已被编码的url，将被解码，再继续重新编码
-        $url = urldecode($url);
-
-        $encodeUrl = rawurlencode(mb_convert_encoding($url, 'utf-8'));
-        // $url  = rawurlencode($url);
-        return str_replace(self::$entities, self::$replacements, $encodeUrl);
+        return UrlHelper::encode2($url);
     }
 
     /**
-     * @param array               $headers
+     * @param array $headers
      * @param string|array|object $data body data
      *
      * @return string

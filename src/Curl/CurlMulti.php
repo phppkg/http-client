@@ -11,6 +11,7 @@ namespace PhpComp\Http\Client\Curl;
 
 use PhpComp\Http\Client\ClientUtil;
 use RuntimeException;
+use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function curl_errno;
 use function curl_error;
@@ -324,12 +325,12 @@ class CurlMulti // extends CurlLite
         $url = trim($url);
 
         // is a url part.
-        if ($this->baseUrl && !ClientUtil::isFullURL($url)) {
+        if ($this->baseUrl && !UrlHelper::isFullURL($url)) {
             $url = $this->baseUrl . $url;
         }
 
         // check again
-        if (!ClientUtil::isFullURL($url)) {
+        if (!UrlHelper::isFullURL($url)) {
             throw new RuntimeException("The request url is not full, URL $url");
         }
 
