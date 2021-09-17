@@ -11,6 +11,7 @@ namespace PhpComp\Http\Client\Curl;
 
 use PhpComp\Http\Client\ClientUtil;
 use RuntimeException;
+use Toolkit\Stdlib\Arr\ArrayHelper;
 use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function curl_errno;
@@ -27,14 +28,13 @@ use function curl_setopt;
 use function curl_setopt_array;
 use function strtoupper;
 use function trim;
-use function ucwords;
 use function usleep;
 use const CURLM_CALL_MULTI_PERFORM;
 use const CURLM_OK;
 use const CURLOPT_CONNECTTIMEOUT;
-use const CURLOPT_CUSTOMREQUEST;
 use const CURLOPT_ENCODING;
 use const CURLOPT_FOLLOWLOCATION;
+use const CURLOPT_HEADER;
 use const CURLOPT_HTTPHEADER;
 use const CURLOPT_IPRESOLVE;
 use const CURLOPT_MAXREDIRS;
@@ -135,7 +135,8 @@ class CurlMulti // extends CurlLite
         $this->mh = curl_multi_init();
 
         foreach ($data as $key => $opts) {
-            $opts              = ClientUtil::mergeArray($this->options, $opts);
+            $opts = ArrayHelper::quickMerge($this->options, $opts);
+
             $this->chMap[$key] = $this->createResource($opts['url'], [], [], $opts);
 
             curl_multi_add_handle($this->mh, $this->chMap[$key]);
@@ -147,15 +148,16 @@ class CurlMulti // extends CurlLite
 
     /**
      * @param string $url
-     * @param mixed  $data
-     * @param array  $headers
-     * @param array  $options
+     * @param mixed $data
+     * @param array $headers
+     * @param array $options
      *
      * @return $this
      */
     public function append(string $url, $data = null, array $headers = [], array $options = []): self
     {
-        $options       = array_merge($this->options, $options);
+        $options = array_merge($this->options, $options);
+        // append
         $this->chMap[] = $ch = $this->createResource($url, $data, $headers, $options);
 
         curl_multi_add_handle($this->mh, $ch);
@@ -164,8 +166,9 @@ class CurlMulti // extends CurlLite
     }
 
     /**
-     * @link https://secure.php.net/manual/zh/function.curl-multi-select.php
      * execute multi request
+     *
+     * @link https://secure.php.net/manual/zh/function.curl-multi-select.php
      *
      * @param null|resource $mh
      *
@@ -213,13 +216,13 @@ class CurlMulti // extends CurlLite
 
     /**
      * @param string $url
-     * @param mixed  $data
-     * @param array  $headers
-     * @param array  $opts
+     * @param mixed $data
+     * @param array $headers
+     * @param array $opts
      *
      * @return resource
      */
-    public function createResource($url, $data = null, array $headers = [], array $opts = [])
+    public function createResource(string $url, $data = null, array $headers = [], array $opts = [])
     {
         $ch = curl_init();
 
@@ -236,29 +239,13 @@ class CurlMulti // extends CurlLite
             CURLOPT_MAXREDIRS      => 5,
 
             // 设置不返回header 返回的响应就只有body
-            \CURLOPT_HEADER        => false,
+            CURLOPT_HEADER         => false,
         ];
 
         $curlOptions[CURLOPT_URL] = $this->buildUrl($url);
 
         $method = strtoupper($opts['method']);
-        switch ($method) {
-            case 'GET':
-                $curlOptions[CURLOPT_HTTPGET] = true;
-                break;
-            case 'POST':
-                $curlOptions[CURLOPT_POST] = true;
-                break;
-            case 'PUT':
-                $curlOptions[CURLOPT_PUT] = true;
-                break;
-            case 'HEAD':
-                $curlOptions[CURLOPT_HEADER] = true;
-                $curlOptions[CURLOPT_NOBODY] = true;
-                break;
-            default:
-                $curlOptions[CURLOPT_CUSTOMREQUEST] = $method;
-        }
+        CurlUtil::setMethodToOption($curlOptions, $method);
 
         // data
         if (isset($opts['data'])) {
@@ -273,20 +260,20 @@ class CurlMulti // extends CurlLite
             $headers = array_merge($opts['headers'], $headers);
         }
         if ($headers) {
-            $formatted = [];
-            foreach ($headers as $name => $value) {
-                $name        = ucwords($name);
-                $formatted[] = "$name: $value";
-            }
+            $formatted = ClientUtil::formatHeaders($headers);
 
-            $formatted[]                     = 'Expect: '; // 首次速度非常慢 解决
-            $formatted[]                     = 'Accept-Encoding: gzip, deflate'; // gzip
+            // 首次速度非常慢 解决
+            $formatted[] = 'Expect: ';
+            $formatted[] = 'Accept-Encoding: gzip, deflate'; // gzip
+            // set option
             $curlOptions[CURLOPT_HTTPHEADER] = $formatted;
         }
 
         // disable 'https' verify
         if ($opts['sslVerify'] === false) {
+            /** @noinspection CurlSslServerSpoofingInspection */
             $curlOptions[CURLOPT_SSL_VERIFYHOST] = 0;
+            /** @noinspection CurlSslServerSpoofingInspection */
             $curlOptions[CURLOPT_SSL_VERIFYPEER] = false;
         }
 
@@ -316,7 +303,7 @@ class CurlMulti // extends CurlLite
 
     /**
      * @param string $url
-     * @param mixed  $data
+     * @param mixed $data
      *
      * @return string
      */

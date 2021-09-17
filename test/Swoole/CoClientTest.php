@@ -7,7 +7,7 @@
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client\Test\Swoole;
+namespace PhpComp\Http\ClientTest\Swoole;
 
 use PhpComp\Http\Client\Swoole\CoClient;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +17,7 @@ use function Swoole\Coroutine\run;
  * Class CoClientTest
  *
  * @covers  \PhpComp\Http\Client\Swoole\CoClient
- * @package PhpComp\Http\Client\Test\Swoole
+ * @package PhpComp\Http\ClientTest\Swoole
  */
 class CoClientTest extends TestCase
 {

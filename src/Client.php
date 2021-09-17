@@ -20,6 +20,7 @@ use function method_exists;
  * Class Client
  *
  * @package PhpComp\Http\Client
+ *
  * @method static ClientInterface get(string $url, $params = null, array $headers = [], array $options = [])
  * @method static ClientInterface delete(string $url, $params = null, array $headers = [], array $options = [])
  * @method static ClientInterface head(string $url, $params = null, array $headers = [], array $options = [])
@@ -59,19 +60,24 @@ class Client
     private static $defaultConfig = [];
 
     /**
-     * @param array $config
+     * Quick create an client
+     *
      *  [
-     *  'driver' => 'curl', // curl, stream, fsock, fopen, file, co, co2
-     *  // ...
+     *      'driver' => 'curl', // curl, stream, fsock, fopen, file, co, co2
+     *      // ...
      *  ]
+     *
+     * @param array $config more see {@see AbstractClient::$options}
+     * @psalm-param array{driver:string, } $config
      *
      * @return ClientInterface|AbstractClient
      */
     public static function factory(array $config): ClientInterface
     {
-        $name = $config['driver'] ?? '';
+        $name  = $config['driver'] ?? '';
+        $class = self::$drivers[$name] ?? '';
 
-        if (!$class = self::$drivers[$name] ?? '') {
+        if (!$class) {
             // auto select
             foreach (self::$drivers as $driverClass) {
                 if ($driverClass::isAvailable()) {
@@ -79,8 +85,10 @@ class Client
                     break;
                 }
             }
-        } else {
-            // remove key: 'driver'
+        }
+
+        // remove key: 'driver'
+        if ($name) {
             unset($config['driver']);
         }
 

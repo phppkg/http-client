@@ -11,10 +11,12 @@ namespace PhpComp\Http\Client\Curl;
 
 use InvalidArgumentException;
 use PhpComp\Http\Client\AbstractClient;
+use PhpComp\Http\Client\ClientConst;
 use PhpComp\Http\Client\ClientInterface;
 use PhpComp\Http\Client\ClientUtil;
 use PhpComp\Http\Client\Exception\ClientException;
 use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
+use Toolkit\Stdlib\Arr\ArrayHelper;
 use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function curl_close;
@@ -52,20 +54,15 @@ use const CURLOPT_AUTOREFERER;
 use const CURLOPT_CONNECTTIMEOUT;
 use const CURLOPT_COOKIE;
 use const CURLOPT_COOKIEFILE;
-use const CURLOPT_CUSTOMREQUEST;
 use const CURLOPT_ENCODING;
 use const CURLOPT_FOLLOWLOCATION;
 use const CURLOPT_HEADER;
 use const CURLOPT_HTTPAUTH;
-use const CURLOPT_HTTPGET;
 use const CURLOPT_HTTPHEADER;
 use const CURLOPT_MAXREDIRS;
-use const CURLOPT_NOBODY;
-use const CURLOPT_POST;
 use const CURLOPT_POSTFIELDS;
 use const CURLOPT_PROXY;
 use const CURLOPT_PROXYPORT;
-use const CURLOPT_PUT;
 use const CURLOPT_REFERER;
 use const CURLOPT_RETURNTRANSFER;
 use const CURLOPT_SSL_VERIFYHOST;
@@ -109,9 +106,8 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     use ParseRawResponseTrait;
 
     // ssl auth type
-    public const SSL_TYPE_CERT = 'cert';
-
     public const SSL_TYPE_KEY = 'key';
+    public const SSL_TYPE_CERT = 'cert';
 
     /**
      * Can to retry request
@@ -159,8 +155,8 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         CURLOPT_TIMEOUT        => 30,
 
         // isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-        CURLOPT_USERAGENT      => '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
-        //CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+        CURLOPT_USERAGENT      => ClientConst::USERAGENT_BROWSER,
+        // CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
     ];
 
     /**
@@ -219,15 +215,15 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     /**
      * File upload
      *
-     * @param string $url      The target url
-     * @param string $field    The post field name
+     * @param string $url The target url
+     * @param string $field The post field name
      * @param string $filePath The file path
      * @param string $mimeType The post file mime type
      *                         param string $postFilename The post file name
      *
-     * @return mixed
+     * @return ClientInterface
      */
-    public function upload(string $url, string $field, string $filePath, string $mimeType = '')
+    public function upload(string $url, string $field, string $filePath, string $mimeType = ''): ClientInterface
     {
         if (!$mimeType) {
             $fInfo    = finfo_open(FILEINFO_MIME); // 返回 mime 类型
@@ -247,9 +243,9 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     /**
      * Image file download and save
      *
-     * @param string $imgUrl  image url e.g. http://static.oschina.net/uploads/user/277/554046_50.jpg
+     * @param string $imgUrl image url e.g. http://static.oschina.net/uploads/user/277/554046_50.jpg
      * @param string $saveDir 图片保存路径
-     * @param string $rename  图片重命名(只写名称，不用后缀) 为空则使用原名称
+     * @param string $rename 图片重命名(只写名称，不用后缀) 为空则使用原名称
      *
      * @return string
      */
@@ -294,17 +290,17 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      * Send request
      *
      * @param string $url
-     * @param mixed  $data
+     * @param mixed $data
      * @param string $method
-     * @param array  $headers
-     * @param array  $options
+     * @param array $headers
+     * @param array $options
      *
      * @return $this
      */
     public function request(string $url, $data = null, string $method = 'GET', array $headers = [], array $options = []): ClientInterface
     {
-        if ($method = strtoupper($method)) {
-            $options['method'] = $method;
+        if ($method) {
+            $options['method'] = strtoupper($method);
         }
 
         $url = $this->buildFullUrl($url);
@@ -320,9 +316,9 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
                 if (false === in_array($curlErrNo, self::$canRetryErrorCodes, true)) {
                     $curlError = curl_error($ch);
-                    $error     = sprintf('Curl error (code %s): %s', $curlErrNo, $curlError);
+                    $errorMsg  = sprintf('Curl error (code %s): %s', $curlErrNo, $curlError);
 
-                    throw new ClientException($error, $curlErrNo);
+                    throw new ClientException($errorMsg, $curlErrNo);
                 }
 
                 $retries--;
@@ -355,9 +351,9 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
     /**
      * @param string $url
-     * @param mixed  $data
-     * @param array  $headers
-     * @param array  $options
+     * @param mixed $data
+     * @param array $headers
+     * @param array $options
      *
      * @return resource
      */
@@ -379,30 +375,12 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         $options = array_merge($this->options, $options);
         $method  = ClientUtil::formatAndCheckMethod($options['method']);
 
-        switch ($method) {
-            case 'GET':
-                $curlOptions[CURLOPT_HTTPGET] = true;
-                break;
-            case 'POST':
-                $curlOptions[CURLOPT_POST] = true;
-                break;
-            case 'PUT':
-                $curlOptions[CURLOPT_PUT] = true;
-                break;
-            case 'HEAD':
-                $curlOptions[CURLOPT_HEADER] = true;
-                $curlOptions[CURLOPT_NOBODY] = true;
-                break;
-            default:
-                $curlOptions[CURLOPT_CUSTOMREQUEST] = $method;
-        }
-
         // init curl
         $ch = curl_init();
 
         // add send data
         if ($data) {
-            // allow post data
+            // allow post body data
             if (self::SUPPORTED_METHODS[$method]) {
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
             } else {
@@ -411,11 +389,14 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         }
 
         // merge curl options, can not use `array_merge()`, $_curlOptions key is int.
-        if (isset($options['curlOptions'])) {
-            $curlOptions = ClientUtil::mergeArray($this->_curlOptions, $options['curlOptions']);
+        if (!empty($options['curlOptions'])) {
+            $curlOptions = ArrayHelper::quickMerge($options['curlOptions'], $this->_curlOptions);
         } else {
             $curlOptions = $this->_curlOptions;
         }
+
+        // set request method
+        CurlUtil::setMethodToOption($curlOptions, $method);
 
         // set request url
         $curlOptions[CURLOPT_URL] = UrlHelper::encode2($url);
@@ -526,7 +507,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @param string $user
      * @param string $pwd
-     * @param int    $authType CURLAUTH_BASIC CURLAUTH_DIGEST
+     * @param int $authType CURLAUTH_BASIC CURLAUTH_DIGEST
      *
      * @return $this
      */
@@ -540,8 +521,8 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     /**
      * Use SSL certificate/private-key auth
      *
-     * @param string $pwd      The SLL CERT/KEY password
-     * @param string $file     The SLL CERT/KEY file
+     * @param string $pwd The SLL CERT/KEY password
+     * @param string $file The SLL CERT/KEY file
      * @param string $authType The auth type: 'cert' or 'key'
      *
      * @return $this
@@ -647,7 +628,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
     /**
      * @param int|string $name
-     * @param null       $default
+     * @param null $default
      *
      * @return mixed
      */

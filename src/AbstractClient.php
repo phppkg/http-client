@@ -43,6 +43,7 @@ abstract class AbstractClient implements ClientInterface
      * for create psr7 ResponseInterface instance
      *
      * @var Closure function(): ResponseInterface {..}
+     * @psalm-var Closure(): ResponseInterface
      */
     protected $responseCreator;
 
@@ -60,10 +61,10 @@ abstract class AbstractClient implements ClientInterface
         // enable SSL verify
         'sslVerify' => false,
         // request headers
-        'headers'   => [// name => value
-        ],
-        'cookies'   => [// name => value
-        ],
+        // name => value
+        'headers'   => [],
+        // name => value
+        'cookies'   => [],
         'proxy'     => [
             // 'host' => '',
             // 'port' => '',
@@ -79,6 +80,7 @@ abstract class AbstractClient implements ClientInterface
         // send data(todo)
         'data'      => [],
         'json'      => [],
+        // extra
         // 一些针对不同驱动的自定义选项
         // 'curlOptions' => [],
         // 'coOptions' => [],
@@ -86,7 +88,7 @@ abstract class AbstractClient implements ClientInterface
     ];
 
     /**
-     * global options data. init from $defaultOptions
+     * Global options data. init from $defaultOptions
      *
      * @see AbstractClient::$defaultOptions
      * @var array
@@ -110,11 +112,13 @@ abstract class AbstractClient implements ClientInterface
      * [ 'Content-Type' => 'Content-Type: application/json' ]
      *
      * @var array
+     * @psalm-var array<string, string>
      */
     protected $headers = [];
 
     /**
      * @var array
+     * @psalm-var array<string, string>
      */
     protected $cookies = [];
 
@@ -153,9 +157,31 @@ abstract class AbstractClient implements ClientInterface
      * @return static
      * @throws RuntimeException
      */
+    public static function new(array $options = []): ClientInterface
+    {
+        return new static($options);
+    }
+
+    /**
+     * @param array $options
+     *
+     * @return static
+     * @throws RuntimeException
+     */
     public static function create(array $options = []): ClientInterface
     {
         return new static($options);
+    }
+
+    /**
+     * @return string
+     */
+    public static function driverName(): string
+    {
+        $class = static::class;
+        $name  = substr($class, strrpos($class, '\\') + 1);
+
+        return strtolower(str_replace('Client', '', $name));
     }
 
     /**
@@ -257,9 +283,9 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param string $url
-     * @param null   $params
-     * @param array  $headers
-     * @param array  $options
+     * @param null $params
+     * @param array $headers
+     * @param array $options
      *
      * @return ClientInterface
      */
@@ -289,9 +315,9 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param string $url
-     * @param mixed   $data
-     * @param array  $headers
-     * @param array  $options
+     * @param mixed $data
+     * @param array $headers
+     * @param array $options
      *
      * @return ClientInterface
      */
@@ -368,14 +394,14 @@ abstract class AbstractClient implements ClientInterface
     /**
      * Set contents of HTTP Cookie header.
      *
-     * @param string $key   The name of the cookie
+     * @param string $key The name of the cookie
      * @param string $value The value for the provided cookie name
      *
      * @return $this
      */
     public function setCookie(string $key, $value): ClientInterface
     {
-        $this->cookies[$key] = $value;
+        $this->cookies[$key] = (string)$value;
         return $this;
     }
 
@@ -471,7 +497,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @param string $user
      * @param string $pwd
-     * @param int    $authType CURLAUTH_BASIC CURLAUTH_DIGEST
+     * @param int $authType CURLAUTH_BASIC CURLAUTH_DIGEST
      *
      * @return $this
      */
@@ -491,7 +517,7 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param string $host
-     * @param int    $port
+     * @param int $port
      *
      * @return $this
      */
@@ -533,7 +559,7 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param array $headers
-     * @param bool  $override
+     * @param bool $override
      *
      * @return $this
      */
@@ -549,7 +575,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @param string $name
      * @param string $value
-     * @param bool   $override
+     * @param bool $override
      *
      * @return $this
      */
@@ -588,7 +614,7 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param string $url
-     * @param mixed  $data
+     * @param mixed $data
      *
      * @return string
      */
@@ -754,7 +780,7 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param int|string $name
-     * @param null       $default
+     * @param null|mixed $default
      *
      * @return mixed
      */
@@ -900,7 +926,7 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param string $name
-     * @param null   $default
+     * @param null $default
      *
      * @return string
      */
@@ -936,6 +962,8 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * Was an 'error' returned (client error or server error).
+     *
+     * @return bool
      */
     public function isError(): bool
     {
@@ -955,9 +983,6 @@ abstract class AbstractClient implements ClientInterface
      */
     public function getDriverName(): string
     {
-        $class = static::class;
-        $name  = substr($class, strrpos($class, '\\') + 1);
-
-        return strtolower(str_replace('Client', '', $name));
+        return self::driverName();
     }
 }

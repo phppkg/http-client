@@ -64,7 +64,19 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      *
      * @return ClientInterface
      */
+    public static function new(array $options): ClientInterface;
+
+    /**
+     * @param array $options
+     *
+     * @return ClientInterface
+     */
     public static function create(array $options): ClientInterface;
+
+    /**
+     * @return string
+     */
+    public static function driverName(): string;
 
     /**
      * @return bool
@@ -247,11 +259,23 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
 
     /**
      * @param string $key
-     * @param $value
+     * @param mixed $value
      *
      * @return ClientInterface
      */
     public function setOption(string $key, $value): ClientInterface;
+
+    /**
+     * @return bool
+     */
+    public function isDebug(): bool;
+
+    /**
+     * @param bool|mixed $debug
+     *
+     * @return $this
+     */
+    public function setDebug($debug): ClientInterface;
 
     /**************************************************************************
      * request cookies
@@ -298,7 +322,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
 
     /**
      * @param string $key
-     * @param        $value
+     * @param string|int $value
      *
      * @return self
      */
@@ -310,21 +334,29 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
 
     /**
      * Was an 'info' header returned.
+     *
+     * @return bool
      */
     public function isInfo(): bool;
 
     /**
      * Was an 'OK' response returned.
+     *
+     * @return bool
      */
     public function isSuccess(): bool;
 
     /**
      * Was a 'redirect' returned.
+     *
+     * @return bool
      */
     public function isRedirect(): bool;
 
     /**
      * Was an 'error' returned (client error or server error).
+     *
+     * @return bool
      */
     public function isError(): bool;
 

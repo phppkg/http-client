@@ -7,7 +7,7 @@
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client\Test;
+namespace PhpComp\Http\ClientTest;
 
 use PhpComp\Http\Client\Curl\CurlClient;
 use PHPUnit\Framework\TestCase;
@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Class CurlClientTest
  *
- * @package PhpComp\Http\Client\Test
+ * @package PhpComp\Http\ClientTest
  */
 class CurlClientTest extends TestCase
 {

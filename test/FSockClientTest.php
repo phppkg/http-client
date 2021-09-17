@@ -7,7 +7,7 @@
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client\Test;
+namespace PhpComp\Http\ClientTest;
 
 use PhpComp\Http\Client\FSockClient;
 use PHPUnit\Framework\TestCase;
@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Class FSockClientTest
  *
- * @package PhpComp\Http\Client\Test
+ * @package PhpComp\Http\ClientTest
  */
 class FSockClientTest extends TestCase
 {

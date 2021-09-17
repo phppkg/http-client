@@ -11,6 +11,7 @@ namespace PhpComp\Http\Client;
 
 use InvalidArgumentException;
 use PhpComp\Http\Client\Exception\ClientException;
+use Toolkit\Stdlib\Arr\ArrayHelper;
 use Toolkit\Stdlib\Helper\JsonHelper;
 use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
@@ -39,22 +40,11 @@ class ClientUtil
      * @param array $append
      *
      * @return array
+     * @deprecated please use ArrayHelper::quickMerge($append, $src)
      */
     public static function mergeArray(array $src, array $append): array
     {
-        if (!$src) {
-            return $append;
-        }
-
-        if (!$append) {
-            return $src;
-        }
-
-        foreach ($append as $key => $val) {
-            $a[$key] = $val;
-        }
-
-        return $src;
+        return ArrayHelper::quickMerge($append, $src);
     }
 
     /**
@@ -179,9 +169,7 @@ class ClientUtil
     {
         $formatted = [];
         foreach ($headers as $name => $value) {
-            $name = ucwords($name);
-            // append
-            $formatted[] = "$name: $value";
+            $formatted[] = ucwords($name) . ': ' . $value;
         }
 
         return $formatted;
