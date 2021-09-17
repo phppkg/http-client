@@ -337,7 +337,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
             $this->setResponseParsed(true);
         } else {
             // if CURLOPT_HEADER is TRUE, The raw response data contains headers and body
-            $this->rawResponse = $response;
+            $this->rawResponse = (string)$response;
             $this->parseResponse(); // parse raw response data
         }
 
