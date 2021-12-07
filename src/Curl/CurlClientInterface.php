@@ -1,18 +1,18 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client\Curl;
+namespace PhpPkg\Http\Client\Curl;
 
 /**
  * Class CurlExtraInterface
  *
- * @package PhpComp\Http\Client\Curl
+ * @package PhpPkg\Http\Client\Curl
  */
 interface CurlClientInterface
 {

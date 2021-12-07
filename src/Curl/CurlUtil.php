@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PhpComp\Http\Client\Curl;
+namespace PhpPkg\Http\Client\Curl;
 
 use const CURLOPT_CUSTOMREQUEST;
 use const CURLOPT_HEADER;

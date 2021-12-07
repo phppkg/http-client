@@ -1,25 +1,25 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client;
+namespace PhpPkg\Http\Client;
 
 use InvalidArgumentException;
-use PhpComp\Http\Client\Curl\CurlClient;
-use PhpComp\Http\Client\Swoole\CoClient;
-use PhpComp\Http\Client\Swoole\CoClient2;
+use PhpPkg\Http\Client\Curl\CurlClient;
+use PhpPkg\Http\Client\Swoole\CoClient;
+use PhpPkg\Http\Client\Swoole\CoClient2;
 use RuntimeException;
 use function method_exists;
 
 /**
  * Class Client
  *
- * @package PhpComp\Http\Client
+ * @package PhpPkg\Http\Client
  *
  * @method static ClientInterface get(string $url, $params = null, array $headers = [], array $options = [])
  * @method static ClientInterface delete(string $url, $params = null, array $headers = [], array $options = [])

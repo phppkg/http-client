@@ -1,5 +1,5 @@
 {
-  "name": "php-comp/http-client",
+  "name": "phppkg/http-client",
   "type": "library",
   "description": "simple http client library of the php",
   "keywords": [
@@ -9,13 +9,13 @@
     "fopen",
     "curl"
   ],
-  "homepage": "https://github.com/php-comp/http-client",
+  "homepage": "https://github.com/phppkg/http-client",
   "license": "MIT",
   "authors": [
     {
       "name": "inhere",
       "email": "in.798@qq.com",
-      "homepage": "http://www.yzone.net/"
+      "homepage": "https://github.com/inhere"
     }
   ],
   "require": {
@@ -25,10 +25,10 @@
   },
   "autoload": {
     "psr-4": {
-      "PhpComp\\Http\\Client\\": "src/"
+      "PhpPkg\\Http\\Client\\": "src/"
     }
   },
   "suggest": {
-    "php-comp/http-message": "Very lightweight PSR-7 implements http message component"
+    "phppkg/http-message": "Very lightweight PSR-7 implements http message component"
   }
 }

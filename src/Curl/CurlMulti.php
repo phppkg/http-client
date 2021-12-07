@@ -1,15 +1,15 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client\Curl;
+namespace PhpPkg\Http\Client\Curl;
 
-use PhpComp\Http\Client\ClientUtil;
+use PhpPkg\Http\Client\ClientUtil;
 use RuntimeException;
 use Toolkit\Stdlib\Arr\ArrayHelper;
 use Toolkit\Stdlib\Str\UrlHelper;
@@ -50,7 +50,7 @@ use const CURLOPT_URL;
 /**
  * Class CurlMulti
  *
- * @package PhpComp\Http\Client\Curl
+ * @package PhpPkg\Http\Client\Curl
  */
 class CurlMulti // extends CurlLite
 {

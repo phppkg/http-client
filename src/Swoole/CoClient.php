@@ -1,18 +1,18 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client\Swoole;
+namespace PhpPkg\Http\Client\Swoole;
 
-use PhpComp\Http\Client\AbstractClient;
-use PhpComp\Http\Client\ClientInterface;
-use PhpComp\Http\Client\ClientUtil;
-use PhpComp\Http\Client\Exception\ClientException;
+use PhpPkg\Http\Client\AbstractClient;
+use PhpPkg\Http\Client\ClientInterface;
+use PhpPkg\Http\Client\ClientUtil;
+use PhpPkg\Http\Client\Exception\ClientException;
 use Swoole\Coroutine\Http\Client;
 use function array_merge;
 use function class_exists;
@@ -23,7 +23,7 @@ use function vdump;
 /**
  * Class CoClient
  *
- * @package PhpComp\Http\Client\Swoole
+ * @package PhpPkg\Http\Client\Swoole
  * @link    https://wiki.swoole.com/wiki/page/p-coroutine_http_client.html
  */
 class CoClient extends AbstractClient

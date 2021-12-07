@@ -1,17 +1,17 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client\Traits;
+namespace PhpPkg\Http\Client\Traits;
 
 use InvalidArgumentException;
-use PhpComp\Http\Client\ClientUtil;
-use PhpComp\Http\Client\StreamContext;
+use PhpPkg\Http\Client\ClientUtil;
+use PhpPkg\Http\Client\StreamContext;
 use function array_merge;
 use function http_build_query;
 use function is_resource;
@@ -21,7 +21,7 @@ use function strlen;
 /**
  * Trait StreamContextBuildTrait
  *
- * @package PhpComp\Http\Client\Traits
+ * @package PhpPkg\Http\Client\Traits
  */
 trait StreamContextBuildTrait
 {

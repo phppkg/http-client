@@ -1,10 +1,10 @@
 <?php
 
 $header = <<<'EOF'
-This file is part of php-comp/http-client.
+This file is part of phppkg/http-client.
 
 @author   https://github.com/inhere
-@link     https://github.com/php-comp/http-client
+@link     https://github.com/phppkg/http-client
 @license  MIT
 EOF;
 

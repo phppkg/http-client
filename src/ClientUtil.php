@@ -1,16 +1,16 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client;
+namespace PhpPkg\Http\Client;
 
 use InvalidArgumentException;
-use PhpComp\Http\Client\Exception\ClientException;
+use PhpPkg\Http\Client\Exception\ClientException;
 use Toolkit\Stdlib\Arr\ArrayHelper;
 use Toolkit\Stdlib\Helper\JsonHelper;
 use Toolkit\Stdlib\Str\UrlHelper;
@@ -31,7 +31,7 @@ use function urldecode;
 /**
  * Class ClientUtil
  *
- * @package PhpComp\Http\Client
+ * @package PhpPkg\Http\Client
  */
 class ClientUtil
 {

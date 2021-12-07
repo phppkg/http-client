@@ -1,19 +1,19 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client;
+namespace PhpPkg\Http\Client;
 
 use InvalidArgumentException;
-use PhpComp\Http\Client\Exception\ClientException;
-use PhpComp\Http\Client\Exception\RequestException;
-use PhpComp\Http\Client\Traits\BuildRawHttpRequestTrait;
-use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
+use PhpPkg\Http\Client\Exception\ClientException;
+use PhpPkg\Http\Client\Exception\RequestException;
+use PhpPkg\Http\Client\Traits\BuildRawHttpRequestTrait;
+use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
 use function array_merge;
 use function fclose;
 use function feof;
@@ -32,7 +32,7 @@ use const STREAM_CLIENT_PERSISTENT;
 /**
  * Class StreamClient
  *
- * @package PhpComp\Http\Client
+ * @package PhpPkg\Http\Client
  */
 class StreamClient extends AbstractClient
 {

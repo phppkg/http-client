@@ -1,17 +1,17 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
-namespace PhpComp\Http\Client;
+namespace PhpPkg\Http\Client;
 
-use PhpComp\Http\Client\Exception\ClientException;
-use PhpComp\Http\Client\Traits\ParseRawResponseTrait;
-use PhpComp\Http\Client\Traits\StreamContextBuildTrait;
+use PhpPkg\Http\Client\Exception\ClientException;
+use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
+use PhpPkg\Http\Client\Traits\StreamContextBuildTrait;
 use Throwable;
 use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
@@ -27,7 +27,7 @@ use function strtoupper;
 /**
  * Class FOpenClient - powered by func fopen()
  *
- * @package PhpComp\Http\Client
+ * @package PhpPkg\Http\Client
  */
 class FOpenClient extends AbstractClient
 {

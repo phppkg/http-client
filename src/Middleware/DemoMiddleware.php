@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PhpComp\Http\Client\Middleware;
+namespace PhpPkg\Http\Client\Middleware;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -8,7 +8,7 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Class DemoMiddleware
  *
- * @package PhpComp\Http\Client\Middleware
+ * @package PhpPkg\Http\Client\Middleware
  */
 class DemoMiddleware implements MiddlewareInterface
 {

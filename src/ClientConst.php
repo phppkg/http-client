@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace PhpComp\Http\Client;
+namespace PhpPkg\Http\Client;
 
 /**
  * Class ClientConst
  *
- * @package PhpComp\Http\Client
+ * @package PhpPkg\Http\Client
  */
 class ClientConst
 {

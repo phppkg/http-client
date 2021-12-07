@@ -1,10 +1,10 @@
 # HTTP Client 
 
-[![License](https://img.shields.io/packagist/l/php-comp/http-client.svg?style=flat-square)](LICENSE)
-[![Php Version](https://img.shields.io/badge/php-%3E=7.1-brightgreen.svg?maxAge=2592000)](https://packagist.org/packages/php-comp/http-client)
-[![Latest Stable Version](http://img.shields.io/packagist/v/php-comp/http-client.svg)](https://packagist.org/packages/php-comp/http-client)
-[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/php-comp/http-client)](https://github.com/php-comp/http-client)
-[![Github Actions Status](https://github.com/php-comp/http-client/workflows/Unit-tests/badge.svg)](https://github.com/php-comp/http-client/actions)
+[![License](https://img.shields.io/packagist/l/phppkg/http-client.svg?style=flat-square)](LICENSE)
+[![Php Version](https://img.shields.io/badge/php-%3E=7.2-brightgreen.svg?maxAge=2592000)](https://packagist.org/packages/phppkg/http-client)
+[![Latest Stable Version](http://img.shields.io/packagist/v/phppkg/http-client.svg)](https://packagist.org/packages/phppkg/http-client)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/phppkg/http-client)](https://github.com/phppkg/http-client)
+[![Github Actions Status](https://github.com/phppkg/http-client/workflows/Unit-tests/badge.svg)](https://github.com/phppkg/http-client/actions)
 
 PHP HTTP client library.
 
@@ -16,7 +16,7 @@ PHP HTTP client library.
 ## 安装
 
 ```bash
-composer require php-comp/http-client
+composer require phppkg/http-client
 ```
 
 ## 使用
@@ -24,7 +24,7 @@ composer require php-comp/http-client
 ### 创建客户端实例
 
 ```php
-use PhpComp\Http\Client\Client;
+use PhpPkg\Http\Client\Client;
 
 // use factory
 $client = Client::factory([
@@ -48,7 +48,7 @@ $client = CoClient::create($options);
 ### 基本使用
 
 ```php
-use PhpComp\Http\Client\Client;
+use PhpPkg\Http\Client\Client;
 
 $client = Client::factory([]);
 

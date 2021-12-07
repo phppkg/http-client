@@ -1,7 +1,7 @@
 <?php
 
-use PhpComp\Http\Client\Client;
-use PhpComp\Http\Client\ClientConst;
+use PhpPkg\Http\Client\Client;
+use PhpPkg\Http\Client\ClientConst;
 
 require dirname(__DIR__) . '/test/bootstrap.php';
 

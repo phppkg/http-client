@@ -10,7 +10,7 @@
          stopOnFailure="false"
 >
     <testsuites>
-        <testsuite name="php-comp http-client Test Suite">
+        <testsuite name="phppkg http-client Test Suite">
             <directory>test</directory>
         </testsuite>
     </testsuites>

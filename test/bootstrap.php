@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
@@ -11,8 +11,8 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('Asia/Shanghai');
 
 $namespaces = [
-    'PhpComp\Http\ClientTest\\' => __DIR__,
-    'PhpComp\Http\Client\\'     => dirname(__DIR__) . '/src',
+    'PhpPkg\Http\ClientTest\\' => __DIR__,
+    'PhpPkg\Http\Client\\'     => dirname(__DIR__) . '/src',
 ];
 
 spl_autoload_register(static function ($class) use ($namespaces): void {

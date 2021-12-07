@@ -9,14 +9,14 @@ on:
 
 jobs:
   test:
-    name: Test on php ${{ matrix.php}} and ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Test on php ${{ matrix.php}}
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: true
       matrix:
-        php: [7.3, 7.4, 8.0]
-        os: [ubuntu-latest, macOS-latest] # windows-latest,
+        php: [7.3, 7.4, 8.0, 8.1]
+#        os: [ubuntu-latest, macOS-latest] # windows-latest,
         include:
           - os: 'ubuntu-latest'
             php: '7.2'
@@ -45,4 +45,4 @@ jobs:
       # Docs: https://getcomposer.org/doc/articles/scripts.md
 
       - name: Run test suite
-        run: phpunit -v --debug
+        run: phpunit --debug

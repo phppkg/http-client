@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace PhpComp\Http\Client\Middleware;
+namespace PhpPkg\Http\Client\Middleware;
 
 use Closure;
 use Psr\Http\Message\RequestInterface;
@@ -9,7 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Interface MiddlewareInterface
  *
- * @package PhpComp\Http\Client\Middleware
+ * @package PhpPkg\Http\Client\Middleware
  */
 interface MiddlewareInterface
 {

@@ -1,21 +1,21 @@
 <?php declare(strict_types=1);
 /**
- * This file is part of php-comp/http-client.
+ * This file is part of phppkg/http-client.
  *
  * @author   https://github.com/inhere
- * @link     https://github.com/php-comp/http-client
+ * @link     https://github.com/phppkg/http-client
  * @license  MIT
  */
 
-namespace PhpComp\Http\ClientTest;
+namespace PhpPkg\Http\ClientTest;
 
-use PhpComp\Http\Client\Curl\CurlClient;
+use PhpPkg\Http\Client\Curl\CurlClient;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class CurlClientTest
  *
- * @package PhpComp\Http\ClientTest
+ * @package PhpPkg\Http\ClientTest
  */
 class CurlClientTest extends TestCase
 {
@@ -46,7 +46,7 @@ class CurlClientTest extends TestCase
     public function testDownload(): void
     {
         $c    = CurlClient::create();
-        $url  = 'https://github.com/php-comp/http-client/archive/master.zip';
+        $url  = 'https://github.com/phppkg/http-client/archive/master.zip';
         $file = __DIR__ . '/down-test.zip';
         $ok   = $c->download($url, $file);
 
