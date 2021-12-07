@@ -14,6 +14,7 @@ use PhpPkg\Http\Client\ClientInterface;
 use PhpPkg\Http\Client\ClientUtil;
 use Swoole\Coroutine\Http2\Client;
 use Swoole\Coroutine\Http2\Request;
+use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function class_exists;
 use function strtoupper;
@@ -27,9 +28,9 @@ use function strtoupper;
 class CoClient2 extends AbstractClient
 {
     /**
-     * @var Client
+     * @var Client|null
      */
-    private $client;
+    private ?Client $client = null;
 
     /**
      * @return bool
@@ -43,7 +44,7 @@ class CoClient2 extends AbstractClient
      * Send request to remote URL
      *
      * @param string     $url
-     * @param array|null $data
+     * @param array|string|null $data
      * @param string     $method
      * @param array      $headers
      * @param array      $options
@@ -52,17 +53,17 @@ class CoClient2 extends AbstractClient
      */
     public function request(
         string $url,
-        $data = null,
+        array|string $data = null,
         string $method = self::GET,
         array $headers = [],
         array $options = []
-    ): ClientInterface {
+    ): static {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
 
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
+        $info = UrlHelper::parse2($this->buildFullUrl($url));
 
         // enable SSL verify
         // options: 'sslVerify' => false/true,

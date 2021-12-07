@@ -41,11 +41,11 @@ class FileClient extends AbstractClient
      */
     public function request(
         string $url,
-        $data = null,
+        array|string $data = null,
         string $method = self::GET,
         array $headers = [],
         array $options = []
-    ): ClientInterface {
+    ): static {
         if ($method) {
             $options['method'] = strtoupper($method);
         }

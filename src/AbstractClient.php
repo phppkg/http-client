@@ -42,15 +42,15 @@ abstract class AbstractClient implements ClientInterface
     /**
      * for create psr7 ResponseInterface instance
      *
-     * @var Closure function(): ResponseInterface {..}
-     * @psalm-var Closure(): ResponseInterface
+     * @var callable(): ResponseInterface
+     * @psalm-var callable(): ResponseInterface
      */
     protected $responseCreator;
 
     /**
      * @var array Default options data
      */
-    protected $defaultOptions = [
+    protected array $defaultOptions = [
         // open debug mode
         'debug'     => false,
         // retry times, when an error occurred.
@@ -93,7 +93,7 @@ abstract class AbstractClient implements ClientInterface
      * @see AbstractClient::$defaultOptions
      * @var array
      */
-    protected $options;
+    protected array $options;
 
     /**************************************************************************
      * request data.
@@ -104,7 +104,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @var string
      */
-    protected $baseUrl = '';
+    protected string $baseUrl = '';
 
     /**
      * setting headers for curl
@@ -114,13 +114,13 @@ abstract class AbstractClient implements ClientInterface
      * @var array
      * @psalm-var array<string, string>
      */
-    protected $headers = [];
+    protected array $headers = [];
 
     /**
      * @var array
      * @psalm-var array<string, string>
      */
-    protected $cookies = [];
+    protected array $cookies = [];
 
     /**************************************************************************
      * response data
@@ -129,27 +129,27 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @var int
      */
-    protected $errNo = 0;
+    protected int $errNo = 0;
 
     /**
      * @var string
      */
-    protected $error = '';
+    protected string $error = '';
 
     /**
      * @var int response status code. eg. 200 404
      */
-    protected $statusCode = 0;
+    protected int $statusCode = 0;
 
     /**
      * @var string body string, it's parsed from $_response
      */
-    protected $responseBody = '';
+    protected string $responseBody = '';
 
     /**
      * @var string[] headers data, it's parsed from $_response
      */
-    protected $responseHeaders = [];
+    protected array $responseHeaders = [];
 
     /**
      * @param array $options
@@ -157,7 +157,7 @@ abstract class AbstractClient implements ClientInterface
      * @return static
      * @throws RuntimeException
      */
-    public static function new(array $options = []): ClientInterface
+    public static function new(array $options = []): static
     {
         return new static($options);
     }
@@ -168,7 +168,7 @@ abstract class AbstractClient implements ClientInterface
      * @return static
      * @throws RuntimeException
      */
-    public static function create(array $options = []): ClientInterface
+    public static function create(array $options = []): static
     {
         return new static($options);
     }
@@ -228,7 +228,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function get(string $url, $params = null, array $headers = [], array $options = []): ClientInterface
+    public function get(string $url, $params = null, array $headers = [], array $options = []): static
     {
         return $this->request($url, $params, self::GET, $headers, $options);
     }
@@ -236,7 +236,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function post(string $url, $data = null, array $headers = [], array $options = []): ClientInterface
+    public function post(string $url, mixed $data = null, array $headers = [], array $options = []): static
     {
         return $this->request($url, $data, self::POST, $headers, $options);
     }
@@ -244,7 +244,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function put(string $url, $data = null, array $headers = [], array $options = []): ClientInterface
+    public function put(string $url, mixed $data = null, array $headers = [], array $options = []): static
     {
         return $this->request($url, $data, self::PUT, $headers, $options);
     }
@@ -252,7 +252,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function patch(string $url, $data = null, array $headers = [], array $options = []): ClientInterface
+    public function patch(string $url, mixed $data = null, array $headers = [], array $options = []): static
     {
         return $this->request($url, $data, self::PATCH, $headers, $options);
     }
@@ -260,7 +260,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function delete(string $url, $params = null, array $headers = [], array $options = []): ClientInterface
+    public function delete(string $url, $params = null, array $headers = [], array $options = []): static
     {
         return $this->request($url, $params, self::DELETE, $headers, $options);
     }
@@ -268,7 +268,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function options(string $url, $params = null, array $headers = [], array $options = []): ClientInterface
+    public function options(string $url, $params = null, array $headers = [], array $options = []): static
     {
         return $this->request($url, $params, self::OPTIONS, $headers, $options);
     }
@@ -276,7 +276,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * {@inheritDoc}
      */
-    public function head(string $url, $params = null, array $headers = [], array $options = []): ClientInterface
+    public function head(string $url, $params = null, array $headers = [], array $options = []): static
     {
         return $this->request($url, $params, self::HEAD, $headers, $options);
     }
@@ -287,9 +287,9 @@ abstract class AbstractClient implements ClientInterface
      * @param array $headers
      * @param array $options
      *
-     * @return ClientInterface
+     * @return static
      */
-    public function trace(string $url, $params = null, array $headers = [], array $options = []): ClientInterface
+    public function trace(string $url, $params = null, array $headers = [], array $options = []): static
     {
         return $this->request($url, $params, self::TRACE, $headers, $options);
     }
@@ -315,13 +315,13 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param string $url
-     * @param mixed $data
+     * @param mixed|null $data
      * @param array $headers
      * @param array $options
      *
      * @return ClientInterface
      */
-    public function json(string $url, $data = null, array $headers = [], array $options = []): ClientInterface
+    public function json(string $url, mixed $data = null, array $headers = [], array $options = []): static
     {
         if (!isset($options['method'])) {
             $options['method'] = 'POST';
@@ -395,11 +395,11 @@ abstract class AbstractClient implements ClientInterface
      * Set contents of HTTP Cookie header.
      *
      * @param string $key The name of the cookie
-     * @param string $value The value for the provided cookie name
+     * @param int|string $value The value for the provided cookie name
      *
      * @return $this
      */
-    public function setCookie(string $key, $value): ClientInterface
+    public function setCookie(string $key, int|string $value): static
     {
         $this->cookies[$key] = (string)$value;
         return $this;
@@ -430,8 +430,10 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * accept Gzip
+     *
+     * @return static
      */
-    public function acceptGzip()
+    public function acceptGzip(): static
     {
         return $this->addHeaders([
             'Expect'          => '', // 首次速度非常慢 解决
@@ -486,7 +488,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setUserAgent(string $userAgent): ClientInterface
+    public function setUserAgent(string $userAgent): static
     {
         $this->setHeader('User-Agent', $userAgent);
         return $this;
@@ -521,7 +523,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setProxy(string $host, int $port): ClientInterface
+    public function setProxy(string $host, int $port): static
     {
         $this->options['proxy'] = [
             'host' => $host,
@@ -546,7 +548,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @inheritdoc
      */
-    public function setHeaders(array $headers): ClientInterface
+    public function setHeaders(array $headers): static
     {
         $this->headers = []; // clear old.
 
@@ -563,7 +565,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function addHeaders(array $headers, bool $override = true): ClientInterface
+    public function addHeaders(array $headers, bool $override = true): static
     {
         foreach ($headers as $name => $value) {
             $this->setHeader($name, $value, $override);
@@ -579,7 +581,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setHeader(string $name, string $value, bool $override = false): ClientInterface
+    public function setHeader(string $name, string $value, bool $override = false): static
     {
         $name = ucwords($name);
 
@@ -591,11 +593,11 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * @param string|array $names
+     * @param array|string $names
      *
      * @return $this
      */
-    public function delHeader($names): ClientInterface
+    public function delHeader(array|string $names): static
     {
         foreach ((array)$names as $name) {
             $name = ucwords($name);
@@ -614,11 +616,11 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param string $url
-     * @param mixed $data
+     * @param mixed|null $data
      *
      * @return string
      */
-    protected function buildFullUrl(string $url, $data = null): string
+    protected function buildFullUrl(string $url, mixed $data = null): string
     {
         $url = trim($url);
 
@@ -680,7 +682,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    protected function resetOptions(): ClientInterface
+    protected function resetOptions(): static
     {
         $this->options = $this->defaultOptions;
         return $this;
@@ -689,7 +691,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function resetRequest(): ClientInterface
+    public function resetRequest(): static
     {
         $this->headers = [];
         $this->cookies = [];
@@ -699,7 +701,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function resetHeaders(): ClientInterface
+    public function resetHeaders(): static
     {
         $this->headers = [];
         return $this;
@@ -708,7 +710,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function resetCookies(): ClientInterface
+    public function resetCookies(): static
     {
         $this->cookies = [];
         return $this;
@@ -717,7 +719,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return $this
      */
-    public function resetResponse(): ClientInterface
+    public function resetResponse(): static
     {
         $this->responseBody    = '';
         $this->responseHeaders = [];
@@ -729,7 +731,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function reset(): ClientInterface
+    public function reset(): static
     {
         $this->resetOptions();
 
@@ -749,11 +751,11 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * @param Closure $responseCreator
+     * @param callable $responseCreator
      *
-     * @return AbstractClient
+     * @return static
      */
-    public function setResponseCreator(Closure $responseCreator): ClientInterface
+    public function setResponseCreator(callable $responseCreator): static
     {
         $this->responseCreator = $responseCreator;
         return $this;
@@ -764,7 +766,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setBaseUrl(string $url): ClientInterface
+    public function setBaseUrl(string $url): static
     {
         $this->baseUrl = trim($url);
         return $this;
@@ -780,11 +782,11 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param int|string $name
-     * @param null|mixed $default
+     * @param mixed|null $default
      *
      * @return mixed
      */
-    public function getOption($name, $default = null)
+    public function getOption(int|string $name, mixed $default = null): mixed
     {
         return $this->options[$name] ?? $default;
     }
@@ -802,7 +804,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return ClientInterface
      */
-    public function setOptions(array $options): ClientInterface
+    public function setOptions(array $options): static
     {
         $this->options = array_merge($this->options, $options);
         return $this;
@@ -814,7 +816,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return ClientInterface
      */
-    public function setOption(string $key, $value): ClientInterface
+    public function setOption(string $key, mixed $value): static
     {
         $this->options[$key] = $value;
         return $this;
@@ -833,7 +835,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setDebug($debug): ClientInterface
+    public function setDebug(mixed $debug): static
     {
         $this->options['debug'] = (bool)$debug;
         return $this;
@@ -844,7 +846,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setRetry(int $retry): ClientInterface
+    public function setRetry(int $retry): static
     {
         $this->options['retry'] = $retry;
         return $this;
@@ -875,7 +877,7 @@ abstract class AbstractClient implements ClientInterface
             return [];
         }
 
-        $data = json_decode($body, true);
+        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         if (json_last_error() > 0) {
             return [];
         }
@@ -886,13 +888,13 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @return bool|stdClass
      */
-    public function getJsonObject()
+    public function getJsonObject(): bool|stdClass
     {
         if (!$body = $this->getResponseBody()) {
             return false;
         }
 
-        $data = json_decode($body, false);
+        $data = json_decode($body, false, 512, JSON_THROW_ON_ERROR);
         if (json_last_error() > 0) {
             return false;
         }
@@ -926,11 +928,11 @@ abstract class AbstractClient implements ClientInterface
 
     /**
      * @param string $name
-     * @param null $default
+     * @param string $default
      *
      * @return string
      */
-    public function getResponseHeader(string $name, $default = null): ?string
+    public function getResponseHeader(string $name, string $default = ''): string
     {
         $name = ucwords($name);
         return $this->responseHeaders[$name] ?? $default;

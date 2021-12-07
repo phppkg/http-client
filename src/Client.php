@@ -37,7 +37,7 @@ class Client
      *
      * @var ClientInterface[]
      */
-    private static $drivers = [
+    private static array $drivers = [
         'curl'   => CurlClient::class,
         'stream' => StreamClient::class,
         'fsock'  => FSockClient::class,
@@ -50,14 +50,14 @@ class Client
     /**
      * @var ClientInterface
      */
-    private static $defaultDriver;
+    private static ClientInterface $defaultDriver;
 
     /**
      * config data for $defaultDriver
      *
      * @var array
      */
-    private static $defaultConfig = [];
+    private static array $defaultConfig = [];
 
     /**
      * Quick create an client

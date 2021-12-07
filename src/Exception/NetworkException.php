@@ -24,7 +24,7 @@ class NetworkException extends RuntimeException implements NetworkExceptionInter
     /**
      * @var RequestInterface
      */
-    private $request;
+    private ?RequestInterface $request;
 
     /**
      * NetworkException constructor.

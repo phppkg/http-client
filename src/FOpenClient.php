@@ -60,7 +60,7 @@ class FOpenClient extends AbstractClient
      *  'uri' => string(20) "http://www.baidu.com"
      * ]
      */
-    private $responseInfo = [];
+    private array $responseInfo = [];
 
     /**
      * @return bool
@@ -74,7 +74,7 @@ class FOpenClient extends AbstractClient
      * Send request to remote URL
      *
      * @param string $url
-     * @param null   $data
+     * @param array|string|null $data
      * @param string $method
      * @param array  $headers
      * @param array  $options
@@ -83,11 +83,11 @@ class FOpenClient extends AbstractClient
      */
     public function request(
         string $url,
-        $data = null,
+        array|string $data = null,
         string $method = self::GET,
         array $headers = [],
         array $options = []
-    ): ClientInterface {
+    ): static {
         if ($method) {
             $options['method'] = strtoupper($method);
         }

@@ -29,12 +29,12 @@ trait ParseRawResponseTrait
      *
      * @var string
      */
-    private $rawResponse = '';
+    private string $rawResponse = '';
 
     /**
      * @var bool
      */
-    private $responseParsed = false;
+    private bool $responseParsed = false;
 
     /**
      * parse response data string.

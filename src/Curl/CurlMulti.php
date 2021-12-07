@@ -9,9 +9,12 @@
 
 namespace PhpPkg\Http\Client\Curl;
 
+use CurlHandle;
+use CurlMultiHandle;
 use PhpPkg\Http\Client\ClientUtil;
 use RuntimeException;
 use Toolkit\Stdlib\Arr\ArrayHelper;
+use Toolkit\Stdlib\Helper\Assert;
 use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function curl_errno;
@@ -57,29 +60,29 @@ class CurlMulti // extends CurlLite
     /**
      * @var array
      */
-    private $errors = [];
+    private array $errors = [];
 
     /**
-     * @var array
+     * @var CurlHandle[]
      */
-    private $chMap = [];
+    private array $chMap = [];
 
     /**
-     * @var resource
+     * @var CurlMultiHandle|null
      */
-    private $mh;
+    private ?CurlMultiHandle $mh = null;
 
     /**
      * base Url
      *
      * @var string
      */
-    protected $baseUrl = '';
+    protected string $baseUrl = '';
 
     /**
      * @var array
      */
-    protected $defaultOptions = [
+    protected array $defaultOptions = [
         'uri'       => '',
         'method'    => 'GET', // 'POST'
         'retry'     => 3,
@@ -101,7 +104,7 @@ class CurlMulti // extends CurlLite
     /**
      * @var array
      */
-    private $options;
+    private array $options;
 
     /**
      * @param array $options
@@ -148,13 +151,13 @@ class CurlMulti // extends CurlLite
 
     /**
      * @param string $url
-     * @param mixed $data
+     * @param mixed|null $data
      * @param array $headers
      * @param array $options
      *
      * @return $this
      */
-    public function append(string $url, $data = null, array $headers = [], array $options = []): self
+    public function append(string $url, mixed $data = null, array $headers = [], array $options = []): self
     {
         $options = array_merge($this->options, $options);
         // append
@@ -170,11 +173,11 @@ class CurlMulti // extends CurlLite
      *
      * @link https://secure.php.net/manual/zh/function.curl-multi-select.php
      *
-     * @param null|resource $mh
+     * @param null|CurlMultiHandle $mh
      *
      * @return bool|array
      */
-    public function execute($mh = null)
+    public function execute(CurlMultiHandle $mh = null): bool|array
     {
         if (!($mh = $mh ?: $this->mh)) {
             return false;
@@ -216,15 +219,16 @@ class CurlMulti // extends CurlLite
 
     /**
      * @param string $url
-     * @param mixed $data
+     * @param mixed|null $data
      * @param array $headers
      * @param array $opts
      *
-     * @return resource
+     * @return CurlHandle
      */
-    public function createResource(string $url, $data = null, array $headers = [], array $opts = [])
+    public function createResource(string $url, mixed $data = null, array $headers = [], array $opts = []): CurlHandle
     {
         $ch = curl_init();
+        Assert::notEmpty($ch, 'init an curl handle failed');
 
         $curlOptions = [
             // 设置超时
@@ -303,11 +307,11 @@ class CurlMulti // extends CurlLite
 
     /**
      * @param string $url
-     * @param mixed $data
+     * @param mixed|null $data
      *
      * @return string
      */
-    protected function buildUrl(string $url, $data = null): string
+    protected function buildUrl(string $url, mixed $data = null): string
     {
         $url = trim($url);
 
@@ -386,17 +390,17 @@ class CurlMulti // extends CurlLite
     }
 
     /**
-     * @return resource
+     * @return CurlMultiHandle|null
      */
-    public function getMh()
+    public function getMh(): ?CurlMultiHandle
     {
         return $this->mh;
     }
 
     /**
-     * @param resource $mh
+     * @param CurlMultiHandle $mh
      */
-    public function setMh($mh): void
+    public function setMh(CurlMultiHandle $mh): void
     {
         $this->mh = $mh;
     }

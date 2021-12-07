@@ -14,6 +14,7 @@ use PhpPkg\Http\Client\ClientInterface;
 use PhpPkg\Http\Client\ClientUtil;
 use PhpPkg\Http\Client\Exception\ClientException;
 use Swoole\Coroutine\Http\Client;
+use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function class_exists;
 use function socket_strerror;
@@ -29,14 +30,14 @@ use function vdump;
 class CoClient extends AbstractClient
 {
     /**
-     * @var Client
+     * @var Client|null
      */
-    private $client;
+    private ?Client $client = null;
 
     /**
      * @var bool
      */
-    private $defer = false;
+    private bool $defer = false;
 
     /**
      * @return bool
@@ -57,7 +58,7 @@ class CoClient extends AbstractClient
     public function download(string $url, string $saveAs): bool
     {
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
+        $info = UrlHelper::parse2($this->buildFullUrl($url));
 
         $uri = $info['path'];
         if ($info['query']) {
@@ -74,7 +75,7 @@ class CoClient extends AbstractClient
      * Send request to remote URL
      *
      * @param string $url
-     * @param mixed  $data
+     * @param array|string|null $data
      * @param string $method
      * @param array  $headers
      * @param array  $options
@@ -83,11 +84,11 @@ class CoClient extends AbstractClient
      */
     public function request(
         string $url,
-        $data = null,
+        array|string $data = null,
         string $method = self::GET,
         array $headers = [],
         array $options = []
-    ): ClientInterface {
+    ): static {
         // not in coroutine env
         if (\Swoole\Coroutine::getCid() < 0) {
             \Swoole\Coroutine\run(function () use ($url, $data, $method, $headers, $options) {
@@ -103,14 +104,14 @@ class CoClient extends AbstractClient
 
     /**
      * @param string $url
-     * @param null|mixed $data
+     * @param mixed|null $data
      * @param string $method
      * @param array $headers
      * @param array $options
      */
     protected function doRequest(
         string $url,
-        $data = null,
+        mixed $data = null,
         string $method = self::GET,
         array $headers = [],
         array $options = []
@@ -121,7 +122,7 @@ class CoClient extends AbstractClient
         }
 
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
+        $info = UrlHelper::parse2($this->buildFullUrl($url));
 
         // create co client
         $client = $this->newSwooleClient($info);
@@ -277,7 +278,7 @@ class CoClient extends AbstractClient
      *
      * @return CoClient
      */
-    public function setDefer(bool $defer = true): ClientInterface
+    public function setDefer(bool $defer = true): static
     {
         $this->defer = $defer;
         return $this;

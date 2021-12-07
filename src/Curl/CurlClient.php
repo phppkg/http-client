@@ -9,6 +9,7 @@
 
 namespace PhpPkg\Http\Client\Curl;
 
+use CurlHandle;
 use InvalidArgumentException;
 use PhpPkg\Http\Client\AbstractClient;
 use PhpPkg\Http\Client\ClientConst;
@@ -17,6 +18,7 @@ use PhpPkg\Http\Client\ClientUtil;
 use PhpPkg\Http\Client\Exception\ClientException;
 use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
 use Toolkit\Stdlib\Arr\ArrayHelper;
+use Toolkit\Stdlib\Helper\Assert;
 use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function curl_close;
@@ -114,7 +116,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @var array
      */
-    private static $canRetryErrorCodes = [
+    private static array $canRetryErrorCodes = [
         CURLE_COULDNT_RESOLVE_HOST,
         CURLE_COULDNT_CONNECT,
         CURLE_HTTP_NOT_FOUND,
@@ -133,7 +135,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @var array
      */
-    private $_curlOptions = [
+    private array $_curlOptions = [
         // TRUE 将 curl_exec() 获取的信息以字符串返回，而不是直接输出
         CURLOPT_RETURNTRANSFER => true,
 
@@ -185,7 +187,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      * "starttransfer_time"
      * "redirect_time"
      */
-    private $_responseInfo = [];
+    private array $_responseInfo = [];
 
     /**
      * {@inheritDoc}
@@ -221,13 +223,13 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      * @param string $mimeType The post file mime type
      *                         param string $postFilename The post file name
      *
-     * @return ClientInterface
+     * @return static
      */
-    public function upload(string $url, string $field, string $filePath, string $mimeType = ''): ClientInterface
+    public function upload(string $url, string $field, string $filePath, string $mimeType = ''): static
     {
         if (!$mimeType) {
             $fInfo    = finfo_open(FILEINFO_MIME); // 返回 mime 类型
-            $mimeType = finfo_file($fInfo, $filePath) ?: 'application/octet-stream';
+            $mimeType = (string)finfo_file($fInfo, $filePath) ?: 'application/octet-stream';
         }
 
         // create file
@@ -261,7 +263,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         $last = trim(strrchr($real, '/'), '/');
 
         // special url e.g http://img.blog.csdn.net/20150929103749499
-        if (false === strpos($last, '.')) {
+        if (!str_contains($last, '.')) {
             $suffix = 'jpg';
             $name   = $rename ?: $last;
         } else {
@@ -290,14 +292,14 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      * Send request
      *
      * @param string $url
-     * @param mixed $data
+     * @param array|string|null $data
      * @param string $method
      * @param array $headers
      * @param array $options
      *
      * @return $this
      */
-    public function request(string $url, $data = null, string $method = 'GET', array $headers = [], array $options = []): ClientInterface
+    public function request(string $url, array|string $data = null, string $method = 'GET', array $headers = [], array $options = []): static
     {
         if ($method) {
             $options['method'] = strtoupper($method);
@@ -355,9 +357,9 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      * @param array $headers
      * @param array $options
      *
-     * @return resource
+     * @return CurlHandle
      */
-    protected function prepareRequest(string $url, $data, array $headers, array $options = [])
+    protected function prepareRequest(string $url, mixed $data, array $headers, array $options = []): CurlHandle
     {
         $this->resetResponse();
 
@@ -377,6 +379,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
         // init curl
         $ch = curl_init();
+        Assert::notEmpty($ch, 'init an curl handle failed');
 
         // add send data
         if ($data) {
@@ -456,7 +459,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     /**
      * @return $this
      */
-    public function resetOptions(): ClientInterface
+    public function resetOptions(): static
     {
         // $this->_curlOptions = [];
 
@@ -467,7 +470,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     /**
      * @return $this
      */
-    public function resetResponse(): ClientInterface
+    public function resetResponse(): static
     {
         $this->rawResponse    = '';
         $this->responseParsed = false;
@@ -485,7 +488,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return $this
      */
-    public function setUserAgent(string $userAgent): ClientInterface
+    public function setUserAgent(string $userAgent): static
     {
         $this->_curlOptions[CURLOPT_USERAGENT] = $userAgent;
         return $this;
@@ -600,7 +603,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     /**
      * @inheritdoc
      */
-    public function setCurlOptions(array $options)
+    public function setCurlOptions(array $options): static
     {
         $this->_curlOptions = array_merge($this->_curlOptions, $options);
         return $this;
@@ -612,7 +615,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return $this
      */
-    public function setCurlOption($name, $value): self
+    public function setCurlOption(int $name, $value): self
     {
         $this->_curlOptions[$name] = $value;
         return $this;
@@ -632,7 +635,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return mixed
      */
-    public function getCurlOption($name, $default = null)
+    public function getCurlOption(int|string $name, $default = null): mixed
     {
         return $this->_curlOptions[$name] ?? $default;
     }

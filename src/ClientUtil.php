@@ -10,23 +10,14 @@
 namespace PhpPkg\Http\Client;
 
 use InvalidArgumentException;
-use PhpPkg\Http\Client\Exception\ClientException;
-use Toolkit\Stdlib\Arr\ArrayHelper;
 use Toolkit\Stdlib\Helper\JsonHelper;
 use Toolkit\Stdlib\Str\UrlHelper;
-use function array_merge;
 use function http_build_query;
 use function is_scalar;
-use function mb_convert_encoding;
-use function parse_url;
-use function rawurlencode;
-use function str_replace;
 use function stripos;
 use function strpos;
 use function strtoupper;
-use function trim;
 use function ucwords;
-use function urldecode;
 
 /**
  * Class ClientUtil
@@ -35,18 +26,6 @@ use function urldecode;
  */
 class ClientUtil
 {
-    /**
-     * @param array $src
-     * @param array $append
-     *
-     * @return array
-     * @deprecated please use ArrayHelper::quickMerge($append, $src)
-     */
-    public static function mergeArray(array $src, array $append): array
-    {
-        return ArrayHelper::quickMerge($append, $src);
-    }
-
     /**
      * @param array $arr
      *
@@ -74,29 +53,7 @@ class ClientUtil
 
     /**
      * @param string $url
-     *
-     * @return array
-     * @deprecated please use UrlHelper::parse2($url);
-     */
-    public static function parseUrl(string $url): array
-    {
-        $info = parse_url($url);
-        if ($info === false) {
-            throw new ClientException('invalid request url: ' . $url);
-        }
-
-        return array_merge([
-            'scheme' => 'http',
-            'host'   => '',
-            'port'   => 80,
-            'path'   => '/',
-            'query'  => '',
-        ], $info);
-    }
-
-    /**
-     * @param string $url
-     * @param null   $data
+     * @param null $data
      *
      * @return string
      */
@@ -122,11 +79,12 @@ class ClientUtil
 
     /**
      * @param array $headers
-     * @param string|array|object $data body data
+     * @param object|array|string $data body data
      *
      * @return string
+     * @throws \JsonException
      */
-    public static function buildBodyByContentType(array &$headers, $data): string
+    public static function buildBodyByContentType(array &$headers, object|array|string $data): string
     {
         $defContentType = 'application/x-www-form-urlencoded';
 

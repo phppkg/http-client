@@ -33,7 +33,7 @@ trait BuildRawHttpRequestTrait
      *
      * @return string
      */
-    protected function buildRawHttpData(array $info, array $headers, array $opts, $data): string
+    protected function buildRawHttpData(array $info, array $headers, array $opts, mixed $data): string
     {
         $uri = $info['path'];
         if ($info['query']) {

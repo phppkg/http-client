@@ -21,7 +21,7 @@ interface CurlClientInterface
      *
      * @param array $options
      */
-    public function setCurlOptions(array $options);
+    public function setCurlOptions(array $options): static;
 
     /**
      * @return array

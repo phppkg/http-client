@@ -14,6 +14,7 @@ use PhpPkg\Http\Client\Exception\ClientException;
 use PhpPkg\Http\Client\Exception\RequestException;
 use PhpPkg\Http\Client\Traits\BuildRawHttpRequestTrait;
 use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
+use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function fclose;
 use function feof;
@@ -53,7 +54,7 @@ class StreamClient extends AbstractClient
      *  'seekable' => bool(false)
      * ]
      */
-    private $responseInfo = [];
+    private array $responseInfo = [];
 
     /**
      * @return bool
@@ -70,7 +71,7 @@ class StreamClient extends AbstractClient
      *
      * @return mixed|resource
      */
-    protected function buildStreamContext(array $opts)
+    protected function buildStreamContext(array $opts): mixed
     {
         if (isset($opts['streamContext'])) {
             $context = $opts['streamContext'];
@@ -110,7 +111,7 @@ class StreamClient extends AbstractClient
      * Send request to remote URL
      *
      * @param string $url
-     * @param null   $data
+     * @param array|string|null $data
      * @param string $method
      * @param array  $headers
      * @param array  $options
@@ -119,11 +120,11 @@ class StreamClient extends AbstractClient
      */
     public function request(
         string $url,
-        $data = null,
+        array|string $data = null,
         string $method = self::GET,
         array $headers = [],
         array $options = []
-    ): ClientInterface {
+    ): static {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
@@ -132,7 +133,7 @@ class StreamClient extends AbstractClient
         $options = array_merge($this->options, $options);
 
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
+        $info = UrlHelper::parse2($this->buildFullUrl($url));
         $ctx  = $this->buildStreamContext($options);
 
         $timeout   = (int)$options['timeout'];
@@ -182,7 +183,7 @@ class StreamClient extends AbstractClient
     /**
      * @return $this
      */
-    public function resetResponse(): ClientInterface
+    public function resetResponse(): static
     {
         $this->rawResponse    = '';
         $this->responseParsed = false;

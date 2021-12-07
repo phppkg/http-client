@@ -12,6 +12,7 @@ namespace PhpPkg\Http\Client\Traits;
 use InvalidArgumentException;
 use PhpPkg\Http\Client\ClientUtil;
 use PhpPkg\Http\Client\StreamContext;
+use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function http_build_query;
 use function is_resource;
@@ -28,7 +29,7 @@ trait StreamContextBuildTrait
     /**
      * @var string
      */
-    protected $fullUrl = '';
+    protected string $fullUrl = '';
 
     /**
      * build stream context. it's create by stream_context_create()
@@ -40,7 +41,7 @@ trait StreamContextBuildTrait
      *
      * @return resource
      */
-    protected function buildStreamContext(string $fullUrl, array $headers, array $opts, $data = null)
+    protected function buildStreamContext(string $fullUrl, array $headers, array $opts, mixed $data = null)
     {
         if (isset($opts['streamContext'])) {
             $context = $opts['streamContext'];
@@ -59,7 +60,7 @@ trait StreamContextBuildTrait
             $headers['Cookie'] = http_build_query($cookies, '', '; ');
         }
 
-        $info    = ClientUtil::parseUrl($fullUrl);
+        $info    = UrlHelper::parse2($fullUrl);
         $headers = array_merge($this->headers, $opts['headers'], $headers);
         $headers = ClientUtil::ucwordArrayKeys($headers);
 

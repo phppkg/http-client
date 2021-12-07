@@ -22,9 +22,9 @@ use Throwable;
 class RequestException extends RuntimeException implements RequestExceptionInterface
 {
     /**
-     * @var RequestInterface
+     * @var RequestInterface|null
      */
-    private $request;
+    private ?RequestInterface $request;
 
     /**
      * NetworkException constructor.

@@ -13,6 +13,7 @@ use PhpPkg\Http\Client\Exception\ClientException;
 use PhpPkg\Http\Client\Exception\RequestException;
 use PhpPkg\Http\Client\Traits\BuildRawHttpRequestTrait;
 use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
+use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function fclose;
 use function feof;
@@ -49,7 +50,7 @@ class FSockClient extends AbstractClient
      *  'seekable' => bool(false)
      * ]
      */
-    private $responseInfo = [];
+    private array $responseInfo = [];
 
     /**
      * @return bool
@@ -63,7 +64,7 @@ class FSockClient extends AbstractClient
      * Send request to remote URL
      *
      * @param string $url
-     * @param null   $data
+     * @param array|string|null $data
      * @param string $method
      * @param array  $headers
      * @param array  $options
@@ -72,17 +73,17 @@ class FSockClient extends AbstractClient
      */
     public function request(
         string $url,
-        $data = null,
+        array|string $data = null,
         string $method = self::GET,
         array $headers = [],
         array $options = []
-    ): ClientInterface {
+    ): static {
         if ($method) {
             $options['method'] = strtoupper($method);
         }
 
         // get request url info
-        $info = ClientUtil::parseUrl($this->buildFullUrl($url));
+        $info = UrlHelper::parse2($this->buildFullUrl($url));
 
         // merge global options data.
         $options = array_merge($this->options, $options);
@@ -129,7 +130,7 @@ class FSockClient extends AbstractClient
     /**
      * @return $this
      */
-    public function resetResponse(): ClientInterface
+    public function resetResponse(): static
     {
         $this->rawResponse    = '';
         $this->responseParsed = false;
