@@ -11,20 +11,11 @@ namespace PhpPkg\Http\Client;
 
 use InvalidArgumentException;
 use PhpPkg\Http\Client\Exception\ClientException;
-use PhpPkg\Http\Client\Exception\RequestException;
-use PhpPkg\Http\Client\Traits\BuildRawHttpRequestTrait;
-use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
 use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
-use function fclose;
-use function feof;
-use function fread;
 use function function_exists;
-use function fwrite;
 use function is_resource;
 use function sprintf;
-use function stream_get_meta_data;
-use function stream_set_timeout;
 use function stream_socket_client;
 use function strtoupper;
 use const STREAM_CLIENT_CONNECT;
@@ -35,27 +26,8 @@ use const STREAM_CLIENT_PERSISTENT;
  *
  * @package PhpPkg\Http\Client
  */
-class StreamClient extends AbstractClient
+class StreamClient extends FSockClient
 {
-    use BuildRawHttpRequestTrait, ParseRawResponseTrait;
-
-    /**
-     * get from \stream_get_meta_data()
-     *
-     * @see https://secure.php.net/manual/zh/function.stream-get-meta-data.php
-     * @var array = [
-     *  'timed_out' => false,
-     *  'blocked' => true,
-     *  'eof' => true,
-     *  'wrapper_type' => "http",
-     *  'stream_type' => "tcp_socket/ssl",
-     *  'mode' => "rb",
-     *  'unread_bytes' => 0,
-     *  'seekable' => false,
-     * ]
-     */
-    private array $responseInfo = [];
-
     /**
      * @return bool
      */
@@ -155,48 +127,8 @@ class StreamClient extends AbstractClient
             throw new ClientException($error, $errno);
         }
 
-        $string = $this->buildRawHttpData($info, $headers, $options, $data);
+        $this->buildRequestAndWrite($handle, $info, $headers, $options, $data);
 
-        // set timeout
-        stream_set_timeout($handle, $timeout);
-
-        // send request
-        if (false === fwrite($handle, $string)) {
-            throw new RequestException('send request to server is failure');
-        }
-
-        // save some info
-        $this->responseInfo = stream_get_meta_data($handle);
-
-        // read response
-        while (!feof($handle)) {
-            $this->rawResponse .= fread($handle, 4096);
-        }
-
-        fclose($handle);
-
-        // parse raw response
-        $this->parseResponse();
         return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function resetResponse(): static
-    {
-        $this->rawResponse    = '';
-        $this->responseParsed = false;
-
-        parent::resetResponse();
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getResponseInfo(): array
-    {
-        return $this->responseInfo;
     }
 }

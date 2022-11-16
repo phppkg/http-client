@@ -72,14 +72,13 @@ trait ParseRawResponseTrait
     }
 
     /**
-     * @param array $headers
-     *  [
+     * @param array $headers = [
      *  "HTTP/1.0 200 OK",
      *  "Accept-Ranges: bytes"
      *  "Cache-Control: no-cache"
      *  "Content-Length: 14615"
      *  "Content-Type: text/html"
-     *  ...
+     *  // ...
      *  ]
      */
     protected function parseResponseHeaders(array &$headers): void

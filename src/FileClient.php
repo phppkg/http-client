@@ -62,6 +62,12 @@ class FileClient extends AbstractClient
         // merge global options data.
         $options = array_merge($this->options, $options);
 
+        if ($this->isDebug()) {
+            $this->addDebugInfo('url', $url);
+            $this->addDebugInfo('options', $options);
+            $this->addDebugInfo('data', $data);
+        }
+
         try {
             $reqCtx  = $this->buildStreamContext($url, $headers, $options, $data);
             $fullUrl = UrlHelper::encode2($this->fullUrl);

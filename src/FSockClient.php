@@ -101,13 +101,36 @@ class FSockClient extends AbstractClient
             throw new ClientException($error, $errno);
         }
 
-        $string = $this->buildRawHttpData($info, $headers, $options, $data);
+        $this->buildRequestAndWrite($handle, $info, $headers, $options, $data);
+
+        return $this;
+    }
+
+    /**
+     * @param resource $handle
+     * @param array $info
+     * @param array $headers
+     * @param array $options
+     * @param mixed $data
+     *
+     * @return void
+     */
+    protected function buildRequestAndWrite($handle, array $info, array $headers, array $options, mixed $data): void
+    {
+        $timeout = (int)$options['timeout'];
+        $request = $this->buildRawHttpData($info, $headers, $options, $data);
+
+        if ($this->isDebug()) {
+            $this->addDebugInfo('urlInfo', $info);
+            $this->addDebugInfo('options', $options);
+            $this->addDebugInfo('request', $request);
+        }
 
         // set timeout
         stream_set_timeout($handle, $timeout);
 
         // send request
-        if (false === fwrite($handle, $string)) {
+        if (false === fwrite($handle, $request)) {
             throw new RequestException('send request to server is fail');
         }
 
@@ -123,8 +146,6 @@ class FSockClient extends AbstractClient
 
         // parse raw response
         $this->parseResponse();
-
-        return $this;
     }
 
     /**

@@ -10,6 +10,7 @@
 namespace PhpPkg\Http\ClientTest;
 
 use PhpPkg\Http\Client\Client;
+use PhpPkg\Http\Client\ClientConst;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,22 +20,27 @@ use PHPUnit\Framework\TestCase;
  */
 class ClientTest extends TestCase
 {
-    public function testGet(): void
+    public function testGet_factory(): void
     {
-        $url    = 'http://www.baidu.com';
+        $url    = 'https://httpbin.org';
         $client = Client::factory([
-            'driver'  => 'fsock',
+            'driver'  => Client::DRIVER_FSOCK,
             'baseUrl' => $url,
+            'debug'   => true,
         ]);
-        $this->assertEquals('fsock', $client->getDriverName());
+        $this->assertEquals(Client::DRIVER_FSOCK, $client->getDriverName());
 
         Client::setDefaultDriver($client);
 
-        $c = Client::get('');
+        $c = Client::get('/get', null, [
+            ClientConst::USERAGENT => ClientConst::USERAGENT_CURL,
+        ]);
+
         $this->assertFalse($c->isError());
         $this->assertEquals(200, $c->getStatusCode());
         $this->assertEquals('fsock', $c->getDriverName());
         $this->assertNotEmpty($c->getResponseBody());
         $this->assertNotEmpty($c->getResponseHeaders());
+        $this->assertNotEmpty($c->getDebugInfo());
     }
 }

@@ -164,27 +164,28 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      * save request and response info, data from curl_getinfo()
      *
      * @link https://secure.php.net/manual/zh/function.curl-getinfo.php
-     * contains key:
-     * "url"
-     * "content_type"
-     * "http_code"
-     * "header_size"
-     * "request_size"
-     * "filetime"
-     * "ssl_verify_result"
-     * "redirect_count"
-     * "total_time"
-     * "namelookup_time"
-     * "connect_time"
-     * "pretransfer_time"
-     * "size_upload"
-     * "size_download"
-     * "speed_download"
-     * "speed_upload"
-     * "download_content_length"
-     * "upload_content_length"
-     * "starttransfer_time"
-     * "redirect_time"
+     * @var array = [
+     * "url" => '',
+     * "content_type" => '',
+     * "http_code" => 400,
+     * "header_size" => '',
+     * "request_size" => '',
+     * "filetime" => '',
+     * "ssl_verify_result" => '',
+     * "redirect_count" => '',
+     * "total_time" => '',
+     * "namelookup_time" => '',
+     * "connect_time" => '',
+     * "pretransfer_time" => '',
+     * "size_upload" => '',
+     * "size_download" => '',
+     * "speed_download" => '',
+     * "speed_upload" => '',
+     * "download_content_length" => '',
+     * "upload_content_length" => '',
+     * "starttransfer_time" => '',
+     * "redirect_time" => '',
+     * ]
      */
     private array $_responseInfo = [];
 

@@ -210,21 +210,28 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function setResponseCreator(callable $responseCreator): static;
 
     /**
-     * reset options, request headers, cookies, response data...
+     * reset all: options, request headers, cookies, response data...
      *
      * @return static
      */
     public function reset(): static;
 
     /**
-     * Reset request data
+     * Reset the request and response info.
+     *
+     * @return static
+     */
+    public function resetRuntime(): static;
+
+    /**
+     * Reset request data: headers, cookies, debugInfo
      *
      * @return static
      */
     public function resetRequest(): static;
 
     /**
-     * Reset response data
+     * Reset response data:
      *
      * @return static
      */

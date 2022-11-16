@@ -78,7 +78,7 @@ trait BuildRawHttpRequestTrait
 
         $fmtHeaders = ClientUtil::formatHeaders($headers);
 
-        // eg. "GET / HTTP/1.1\r\nHost: www.example.com\r\n\r\n"
-        return sprintf("%s %s HTTP/%s\r\n%s\r\n\r\n%s", $method, $version, $uri, implode("\r\n", $fmtHeaders), $body);
+        // eg. "GET /uri HTTP/1.1\r\nHost: www.example.com\r\n\r\n"
+        return sprintf("%s %s HTTP/%s\r\n%s\r\n\r\n%s", $method, $uri, $version, implode("\r\n", $fmtHeaders), $body);
     }
 }

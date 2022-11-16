@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 class FOpenClientTest extends TestCase
 {
-    public function testGet(): void
+    public function testGet_fOpen(): void
     {
         $c = FOpenClient::create();
         $c->get('http://www.baidu.com');

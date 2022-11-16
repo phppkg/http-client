@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 class FSockClientTest extends TestCase
 {
-    public function testGet(): void
+    public function testGet_fSock(): void
     {
         $c = FSockClient::create();
         $c->get('http://www.baidu.com');

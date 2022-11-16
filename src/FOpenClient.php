@@ -111,6 +111,12 @@ class FOpenClient extends AbstractClient
         // set timeout
         stream_set_timeout($this->handle, (int)$options['timeout']);
 
+        if ($this->isDebug()) {
+            $this->addDebugInfo('url', $url);
+            $this->addDebugInfo('options', $options);
+            $this->addDebugInfo('data', $data);
+        }
+
         // read response
         // $content = \stream_get_contents($this->handle);
         while (!feof($this->handle)) {

@@ -57,8 +57,9 @@ abstract class AbstractClient implements ClientInterface
         // retry times, when an error occurred.
         'retry'     => 3,
         'method'    => 'GET', // 'POST'
+        'version'   => '1.1', // http version
         'baseUrl'   => '',
-        'timeout'   => 5,
+        'timeout'   => 5, // seconds
         // enable SSL verify
         'sslVerify' => false,
         // request headers
@@ -123,6 +124,11 @@ abstract class AbstractClient implements ClientInterface
      */
     protected array $cookies = [];
 
+    /**
+     * @var array Record debug info on $options['debug'] = true
+     */
+    private array $_debugInfo = [];
+
     /**************************************************************************
      * response data
      *************************************************************************/
@@ -186,11 +192,9 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * SimpleCurl constructor.
+     * Class constructor.
      *
-     * @param array $options
-     *
-     * @throws RuntimeException
+     * @param array $options = self::$defaultOptions
      */
     public function __construct(array $options = [])
     {
@@ -692,12 +696,15 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
+     * reset request: headers, cookies, debugInfo
+     *
      * @return $this
      */
     public function resetRequest(): static
     {
-        $this->headers = [];
-        $this->cookies = [];
+        $this->headers = $this->cookies = [];
+
+        $this->_debugInfo = [];
         return $this;
     }
 
@@ -730,9 +737,19 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
+     * Reset the request and response info.
+     *
+     * @return static
+     */
+    public function resetRuntime(): static
+    {
+        return $this->resetRequest()->resetResponse();
+    }
+
+    /**
      * Reset the last time headers,cookies,options,response data.
      *
-     * @return $this
+     * @return static
      */
     public function reset(): static
     {
@@ -842,6 +859,24 @@ abstract class AbstractClient implements ClientInterface
     {
         $this->options['debug'] = (bool)$debug;
         return $this;
+    }
+
+    /**
+     * add debug info
+     */
+    public function addDebugInfo(string $key, mixed $value): void
+    {
+        $this->_debugInfo[$key] = $value;
+    }
+
+    /**
+     * Get debug info on options.debug=true
+     *
+     * @return array
+     */
+    public function getDebugInfo(): array
+    {
+        return $this->_debugInfo;
     }
 
     /**

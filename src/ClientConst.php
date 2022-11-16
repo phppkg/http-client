@@ -9,6 +9,9 @@ namespace PhpPkg\Http\Client;
  */
 class ClientConst
 {
+    public const CONTENT_TYPE = 'Content-Type';
+    public const USERAGENT = 'User-Agent';
+
     public const HTML = 'text/html';
     public const JSON = 'application/json';
     public const XML  = 'application/xml';

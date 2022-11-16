@@ -14,8 +14,6 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Class StreamClientTest
- *
- * @package PhpPkg\Http\ClientTest
  */
 class StreamClientTest extends TestCase
 {

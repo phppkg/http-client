@@ -32,6 +32,12 @@ use function method_exists;
  */
 class Client
 {
+    public const DRIVER_CURL   = 'curl';
+    public const DRIVER_FILE   = 'file';
+    public const DRIVER_FOPEN  = 'fopen';
+    public const DRIVER_FSOCK  = 'fsock';
+    public const DRIVER_STREAM = 'stream';
+
     /**
      * The supported drivers
      *
@@ -77,8 +83,8 @@ class Client
         $name  = $config['driver'] ?? '';
         $class = self::$drivers[$name] ?? '';
 
+        // auto select driver
         if (!$class) {
-            // auto select
             foreach (self::$drivers as $driverClass) {
                 if ($driverClass::isAvailable()) {
                     $class = $driverClass;
@@ -125,7 +131,7 @@ class Client
 
     /**
      * @param string $method
-     * @param array  $args
+     * @param array $args
      *
      * @return AbstractClient
      */
@@ -137,7 +143,7 @@ class Client
         }
 
         if (method_exists($client, $method)) {
-            return $client->reset()->$method(...$args);
+            return $client->resetRuntime()->$method(...$args);
         }
 
         throw new InvalidArgumentException('call invalid class method: ' . $method);
