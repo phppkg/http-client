@@ -13,7 +13,6 @@ use CurlHandle;
 use InvalidArgumentException;
 use PhpPkg\Http\Client\AbstractClient;
 use PhpPkg\Http\Client\ClientConst;
-use PhpPkg\Http\Client\ClientInterface;
 use PhpPkg\Http\Client\ClientUtil;
 use PhpPkg\Http\Client\Exception\ClientException;
 use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
@@ -84,9 +83,9 @@ use const FILEINFO_MIME;
 /**
  * Class Curl
  *
- * @package PhpPkg\Http\Client\Curl
+ * ## Usage
  *
- * ```
+ * ```php
  * $curl = CurlClient::make([
  *   'baseUrl' =>  'http://my-site.com'
  * ]);
@@ -514,7 +513,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
      *
      * @return $this
      */
-    public function setUserAuth(string $user, string $pwd = '', int $authType = CURLAUTH_BASIC): AbstractClient
+    public function setUserAuth(string $user, string $pwd = '', int $authType = CURLAUTH_BASIC): static
     {
         $this->_curlOptions[CURLOPT_HTTPAUTH] = $authType;
         $this->_curlOptions[CURLOPT_USERPWD]  = "$user:$pwd";
@@ -538,7 +537,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
 
         if (!file_exists($file)) {
             $name = $authType === self::SSL_TYPE_CERT ? 'certificate' : 'private key';
-            throw new InvalidArgumentException("The SSL $name file not found: {$file}");
+            throw new InvalidArgumentException("The SSL $name file not found: $file");
         }
 
         if ($authType === self::SSL_TYPE_CERT) {

@@ -15,6 +15,9 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 use stdClass;
+use Toolkit\Stdlib\Json;
+use Toolkit\Stdlib\Obj;
+use Toolkit\Stdlib\Obj\DataObject;
 use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function base64_encode;
@@ -22,8 +25,6 @@ use function fclose;
 use function fopen;
 use function fwrite;
 use function implode;
-use function json_decode;
-use function json_last_error;
 use function ltrim;
 use function str_replace;
 use function strrpos;
@@ -314,12 +315,14 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
+     * Send JSON request
+     *
      * @param string $url
      * @param mixed|null $data
      * @param array $headers
      * @param array $options
      *
-     * @return ClientInterface
+     * @return static
      */
     public function json(string $url, mixed $data = null, array $headers = [], array $options = []): static
     {
@@ -368,9 +371,9 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @param int $seconds
      *
-     * @return $this
+     * @return static
      */
-    public function setTimeout(int $seconds): self
+    public function setTimeout(int $seconds): static
     {
         $this->options['timeout'] = $seconds;
         return $this;
@@ -379,9 +382,9 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @param bool $enable
      *
-     * @return $this
+     * @return static
      */
-    public function SSLVerify(bool $enable): self
+    public function SSLVerify(bool $enable): static
     {
         $this->options['sslVerify'] = $enable;
         return $this;
@@ -397,7 +400,7 @@ abstract class AbstractClient implements ClientInterface
      * @param string $key The name of the cookie
      * @param int|string $value The value for the provided cookie name
      *
-     * @return $this
+     * @return static
      */
     public function setCookie(string $key, int|string $value): static
     {
@@ -416,9 +419,9 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @param array $cookies
      *
-     * @return AbstractClient
+     * @return static
      */
-    public function setCookies(array $cookies): AbstractClient
+    public function setCookies(array $cookies): static
     {
         $this->cookies = $cookies;
         return $this;
@@ -442,42 +445,42 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * @return $this
+     * @return static
      */
-    public function withJsonType(): self
+    public function withJsonType(): static
     {
         $this->setHeader('Content-Type', 'application/json; charset=utf-8');
         return $this;
     }
 
     /**
-     * @return $this
+     * @return static
      */
-    public function byJson(): self
+    public function byJson(): static
     {
         return $this->withJsonType();
     }
 
     /**
-     * @return $this
+     * @return static
      */
-    public function byXhr(): self
+    public function byXhr(): static
     {
         return $this->withAjax();
     }
 
     /**
-     * @return $this
+     * @return static
      */
-    public function byAjax(): self
+    public function byAjax(): static
     {
         return $this->withAjax();
     }
 
     /**
-     * @return $this
+     * @return static
      */
-    public function withAjax(): self
+    public function withAjax(): static
     {
         $this->setHeader('X-Requested-With', 'XMLHttpRequest');
         return $this;
@@ -503,7 +506,7 @@ abstract class AbstractClient implements ClientInterface
      *
      * @return $this
      */
-    public function setUserAuth(string $user, string $pwd = '', int $authType = self::AUTH_BASIC): AbstractClient
+    public function setUserAuth(string $user, string $pwd = '', int $authType = self::AUTH_BASIC): static
     {
         if ($authType === self::AUTH_BASIC) {
             $sign = 'Basic ' . base64_encode("$user:$pwd");
@@ -802,7 +805,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @param array $options
      *
-     * @return ClientInterface
+     * @return static
      */
     public function setOptions(array $options): static
     {
@@ -814,7 +817,7 @@ abstract class AbstractClient implements ClientInterface
      * @param string $key
      * @param mixed $value
      *
-     * @return ClientInterface
+     * @return static
      */
     public function setOption(string $key, mixed $value): static
     {
@@ -833,7 +836,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @param bool|mixed $debug
      *
-     * @return $this
+     * @return static
      */
     public function setDebug(mixed $debug): static
     {
@@ -844,7 +847,7 @@ abstract class AbstractClient implements ClientInterface
     /**
      * @param int $retry
      *
-     * @return $this
+     * @return static
      */
     public function setRetry(int $retry): static
     {
@@ -861,6 +864,8 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
+     * get JSON body as array data
+     *
      * @return array
      */
     public function getArrayData(): array
@@ -869,6 +874,8 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
+     * get JSON body as array data
+     *
      * @return array
      */
     public function getJsonArray(): array
@@ -877,12 +884,7 @@ abstract class AbstractClient implements ClientInterface
             return [];
         }
 
-        $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-        if (json_last_error() > 0) {
-            return [];
-        }
-
-        return $data;
+        return Json::decode($body, true);
     }
 
     /**
@@ -894,12 +896,29 @@ abstract class AbstractClient implements ClientInterface
             return false;
         }
 
-        $data = json_decode($body, false, 512, JSON_THROW_ON_ERROR);
-        if (json_last_error() > 0) {
-            return false;
-        }
+        return Json::decode($body);
+    }
 
-        return $data;
+    /**
+     * get JSON body and decode to custom object
+     *
+     * @param object $obj
+     *
+     * @return void
+     */
+    public function bindBodyTo(object $obj): void
+    {
+        Obj::init($obj, $this->getArrayData());
+    }
+
+    /**
+     * get JSON body and decode to DataObject
+     *
+     * @return DataObject
+     */
+    public function getDataObject(): DataObject
+    {
+        return DataObject::new($this->getArrayData());
     }
 
     /**

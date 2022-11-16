@@ -37,7 +37,13 @@ class FileClient extends AbstractClient
     }
 
     /**
-     * {@inheritdoc}
+     * @param string $url
+     * @param array|string|null $data
+     * @param string $method
+     * @param array $headers
+     * @param array $options = self::$defaultOptions
+     *
+     * @return $this
      */
     public function request(
         string $url,

@@ -35,29 +35,30 @@ class FOpenClient extends AbstractClient
 
     /**
      * The network resource handle, it's created by:
-     * fopen()
-     * fsockopen()
-     * stream_socket_client()
+     *
+     * - fopen()
+     * - fsockopen()
+     * - stream_socket_client()
      *
      * @var resource
      */
     protected $handle;
 
     /**
+     * get from \stream_get_meta_data()
+     *
      * @see https://secure.php.net/manual/zh/function.stream-get-meta-data.php
-     * @var array get from \stream_get_meta_data()
-     * data like:
-     * [
-     *  'timed_out' => bool(false)
-     *  'blocked' => bool(true)
-     *  'eof' => bool(true)
-     *  'wrapper_data' =>  [ // headers data], // will remove and parse to $responseHeaders
-     *  'wrapper_type' => string(4) "http"
-     *  'stream_type' => string(14) "tcp_socket/ssl"
-     *  'mode' => string(2) "rb"
-     *  'unread_bytes' => int(0)
-     *  'seekable' => bool(false)
-     *  'uri' => string(20) "http://www.baidu.com"
+     * @var array = [
+     *  'timed_out' => false,
+     *  'blocked' => true,
+     *  'eof' => true,
+     *  'wrapper_data' =>  [ 'headers data' ], // will remove and parse to $responseHeaders
+     *  'wrapper_type' => "http",
+     *  'stream_type' => "tcp_socket/ssl",
+     *  'mode' => "rb",
+     *  'unread_bytes' => 0,
+     *  'seekable' => false,
+     *  'uri' => "http://www.baidu.com"
      * ]
      */
     private array $responseInfo = [];

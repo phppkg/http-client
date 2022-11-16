@@ -42,11 +42,10 @@ class StreamContext
 
     /**
      * @param resource $ctx it's created by stream_context_create()
-     * @param array    $options
-     *                      [
-     *                      'http' => [], // please {@see StreamContext::createHTTPOptions}
-     *                      'ssl' => [], // please {@see StreamContext::createSSLOptions}
-     *                      ]
+     * @param array $options = [
+     *    'http' => [], // please {@see StreamContext::createHTTPOptions}
+     *    'ssl' => [], // please {@see StreamContext::createSSLOptions}
+     *  ]
      */
     public static function setOptions($ctx, array $options): void
     {
@@ -55,11 +54,9 @@ class StreamContext
 
     /**
      * @param resource $ctx
-     * @param array    $options please {@see StreamContext::createHTTPOptions}
-     *                          [
-     *                          'method' => 'GET',
-     *                          ...
-     *                          ]
+     * @param array $options = StreamContext::createHTTPOptions()
+     *
+     * @see StreamContext::createHTTPOptions for all options
      */
     public static function setHTTPOptions($ctx, array $options): void
     {
@@ -70,11 +67,9 @@ class StreamContext
 
     /**
      * @param resource $ctx
-     * @param array    $options please {@see StreamContext::createSSLOptions}
-     *                          [
-     *                          'peer_name' => '..',
-     *                          ...
-     *                          ]
+     * @param array $options = StreamContext::createSSLOptions}
+     *
+     * @see StreamContext::createSSLOptions for all options
      */
     public static function setSSLOptions($ctx, array $options): void
     {
@@ -89,7 +84,7 @@ class StreamContext
      * @link https://secure.php.net/manual/zh/context.http.php
      *
      * @param array $options
-     * @param bool  $addWrapper
+     * @param bool $addWrapper
      *
      * @return array
      */
@@ -138,7 +133,7 @@ class StreamContext
      *       所以，ssl:// 的上下文选项也同样适用于 https:// 和 ftps:// 上下文。
      *
      * @param array $options
-     * @param bool  $addWrapper
+     * @param bool $addWrapper
      *
      * @return array
      */

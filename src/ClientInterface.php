@@ -87,7 +87,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function __toString(): string;
 
     /**
-     * GET
+     * GET request
      *
      * @param string $url
      * @param null   $params
@@ -99,7 +99,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function get(string $url, $params = null, array $headers = [], array $options = []): static;
 
     /**
-     * POST
+     * POST request
      *
      * @param string $url
      * @param mixed|null $data
@@ -111,7 +111,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function post(string $url, mixed $data = null, array $headers = [], array $options = []): static;
 
     /**
-     * PUT
+     * PUT request
      *
      * @param string $url
      * @param mixed|null $data
@@ -123,7 +123,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function put(string $url, mixed $data = null, array $headers = [], array $options = []): static;
 
     /**
-     * PATCH
+     * PATCH request
      *
      * @param string $url
      * @param mixed|null $data
@@ -135,7 +135,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function patch(string $url, mixed $data = null, array $headers = [], array $options = []): static;
 
     /**
-     * DELETE
+     * DELETE request
      *
      * @param string $url
      * @param null   $params
@@ -147,7 +147,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function delete(string $url, $params = null, array $headers = [], array $options = []): static;
 
     /**
-     * OPTIONS
+     * send OPTIONS request
      *
      * @param string $url
      * @param null   $params
@@ -159,7 +159,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function options(string $url, $params = null, array $headers = [], array $options = []): static;
 
     /**
-     * HEAD
+     * send HEAD request
      *
      * @param string $url
      * @param array  $params
@@ -171,7 +171,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     public function head(string $url, array $params = [], array $headers = [], array $options = []): static;
 
     /**
-     * TRACE
+     * TRACE request
      *
      * @param string $url
      * @param array  $params
@@ -189,9 +189,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param array|string|null $data
      * @param string            $method
      * @param array             $headers
-     * @param array             $options All options please {@see AbstractClient::$defaultOptions}
+     * @param array             $options = AbstractClient::$defaultOptions
      *
      * @return static
+     * @see AbstractClient::$defaultOptions for all ptions
      */
     public function request(
         string $url,
@@ -204,28 +205,28 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     /**
      * @param callable $responseCreator
      *
-     * @return self
+     * @return static
      */
     public function setResponseCreator(callable $responseCreator): static;
 
     /**
      * reset options, request headers, cookies, response data...
      *
-     * @return self
+     * @return static
      */
     public function reset(): static;
 
     /**
      * Reset request data
      *
-     * @return self
+     * @return static
      */
     public function resetRequest(): static;
 
     /**
      * Reset response data
      *
-     * @return self
+     * @return static
      */
     public function resetResponse(): static;
 
@@ -237,14 +238,14 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param string $host
      * @param int    $port
      *
-     * @return $this
+     * @return static
      */
     public function setProxy(string $host, int $port): static;
 
     /**
      * @param string $userAgent
      *
-     * @return $this
+     * @return static
      */
     public function setUserAgent(string $userAgent): static;
 
@@ -271,7 +272,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     /**
      * @param bool|mixed $debug
      *
-     * @return $this
+     * @return static
      */
     public function setDebug(mixed $debug): static;
 
@@ -288,7 +289,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      *
      * @param array $headers
      *
-     * @return $this
+     * @return static
      */
     public function setHeaders(array $headers): static;
 
@@ -305,12 +306,12 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
     /**
      * @param array|string $names
      *
-     * @return $this
+     * @return static
      */
     public function delHeader(array|string $names): static;
 
     /**
-     * @return mixed
+     * @return array
      */
     public function getHeaders(): array;
 
@@ -322,9 +323,9 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * @param string $key
      * @param int|string $value
      *
-     * @return self
+     * @return static
      */
-    public function setCookie(string $key, int|string $value): self;
+    public function setCookie(string $key, int|string $value): static;
 
     /**************************************************************************
      * response info

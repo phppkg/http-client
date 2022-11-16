@@ -6,8 +6,9 @@
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/phppkg/http-client)](https://github.com/phppkg/http-client)
 [![Github Actions Status](https://github.com/phppkg/http-client/workflows/Unit-tests/badge.svg)](https://github.com/phppkg/http-client/actions)
 
-PHP HTTP client library.
+An easy-to-use HTTP client library for PHP. support CURL, file, fsockopen, stream drivers.
 
+- 简单易于使用
 - 可用的驱动包括: `curl` `swoole` `fsockopen` `stream` `fopen`
 - 支持 `GET,POST,PATCH,PUT,HEAD,DELETE` 等请求方法
 - 支持设置代理，自定义headers
@@ -23,6 +24,8 @@ composer require phppkg/http-client
 
 ### 创建客户端实例
 
+**自动选择驱动类**:
+
 ```php
 use PhpPkg\Http\Client\Client;
 
@@ -31,9 +34,13 @@ $client = Client::factory([
     'driver' => 'curl', // stream, fsock, fopen, file, co, co2
     
     // ... 更多选项
+    'baseUrl' =>  'http://my-site.com'
 ]);
+```
 
-// 或者直接使用指定的类
+**直接使用指定的类**:
+
+```php
 $options = [
   'baseUrl' =>  'http://my-site.com'
   // ...
@@ -67,8 +74,21 @@ $client->byJson()->post('/users/1', json_encode($post));
 
 $statusCode = $client->getStatusCode();
 $headers = $client->getResponseHeaders();
+
+// get body data
 $data = $client->getResponseBody();
 $array = $client->getArrayData();
+```
+
+**解析响应Body**:
+
+```php
+$data = $client->getDataObject();
+$data->getInt('createTime', 0);
+
+$user = new User();
+$client->bindBodyTo($user);
+vdump($user->name);
 ```
 
 ### 文件上传下载
@@ -84,6 +104,13 @@ $client = CurlClient::create([
 
 $client->upload(...);
 ```
+
+## 常用方法
+
+- `getJsonArray/getArrayData(): array`
+- `getJsonObject(): stdClass`
+- `getDataObject(): DataObject`
+- `bindBodyTo(object $obj): void`
 
 ## LICENSE
 

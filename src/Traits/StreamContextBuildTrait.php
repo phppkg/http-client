@@ -36,7 +36,7 @@ trait StreamContextBuildTrait
      *
      * @param string     $fullUrl
      * @param array      $headers
-     * @param array      $opts
+     * @param array      $opts = ['method' => 'GET', 'streamContext' => 'resource', 'cookies' => [], 'headers' => []]
      * @param mixed|null $data
      *
      * @return resource

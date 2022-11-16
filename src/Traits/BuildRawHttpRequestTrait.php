@@ -28,7 +28,7 @@ trait BuildRawHttpRequestTrait
      *
      * @param array $info
      * @param array $headers
-     * @param array $opts
+     * @param array $opts = ['version' => '1.1', 'method' => 'GET', 'cookies' => [], 'headers' => []]
      * @param mixed $data
      *
      * @return string
@@ -53,7 +53,8 @@ trait BuildRawHttpRequestTrait
             $headers['Host'] = $info['host'];
         }
 
-        $method = ClientUtil::formatAndCheckMethod($opts['method']);
+        $version = $opts['version'] ?? '1.1';
+        $method  = ClientUtil::formatAndCheckMethod($opts['method']);
 
         // $heads[] = "Host: www.example.com\r\n";
         // $heads[] = "Connection: Close\r\n";
@@ -78,6 +79,6 @@ trait BuildRawHttpRequestTrait
         $fmtHeaders = ClientUtil::formatHeaders($headers);
 
         // eg. "GET / HTTP/1.1\r\nHost: www.example.com\r\n\r\n"
-        return sprintf("%s %s HTTP/1.1\r\n%s\r\n\r\n%s", $method, $uri, implode("\r\n", $fmtHeaders), $body);
+        return sprintf("%s %s HTTP/%s\r\n%s\r\n\r\n%s", $method, $version, $uri, implode("\r\n", $fmtHeaders), $body);
     }
 }

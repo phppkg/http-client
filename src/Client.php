@@ -21,21 +21,21 @@ use function method_exists;
  *
  * @package PhpPkg\Http\Client
  *
- * @method static ClientInterface get(string $url, $params = null, array $headers = [], array $options = [])
- * @method static ClientInterface delete(string $url, $params = null, array $headers = [], array $options = [])
- * @method static ClientInterface head(string $url, $params = null, array $headers = [], array $options = [])
- * @method static ClientInterface options(string $url, $params = null, array $headers = [], array $options = [])
- * @method static ClientInterface post(string $url, $data = null, array $headers = [], array $options = [])
- * @method static ClientInterface put(string $url, $data = null, array $headers = [], array $options = [])
- * @method static ClientInterface patch(string $url, $data = null, array $headers = [], array $options = [])
- * @method static ClientInterface request(string $url, $data = null, array $headers = [], array $options = [])
+ * @method static AbstractClient get(string $url, $params = null, array $headers = [], array $options = [])
+ * @method static AbstractClient delete(string $url, $params = null, array $headers = [], array $options = [])
+ * @method static AbstractClient head(string $url, $params = null, array $headers = [], array $options = [])
+ * @method static AbstractClient options(string $url, $params = null, array $headers = [], array $options = [])
+ * @method static AbstractClient post(string $url, $data = null, array $headers = [], array $options = [])
+ * @method static AbstractClient put(string $url, $data = null, array $headers = [], array $options = [])
+ * @method static AbstractClient patch(string $url, $data = null, array $headers = [], array $options = [])
+ * @method static AbstractClient request(string $url, $data = null, array $headers = [], array $options = [])
  */
 class Client
 {
     /**
      * The supported drivers
      *
-     * @var ClientInterface[]
+     * @var AbstractClient[]
      */
     private static array $drivers = [
         'curl'   => CurlClient::class,
@@ -67,12 +67,12 @@ class Client
      *      // ...
      *  ]
      *
-     * @param array $config more see {@see AbstractClient::$options}
-     * @psalm-param array{driver:string, } $config
+     * @param array $config = AbstractClient::$defaultOptions
      *
-     * @return ClientInterface|AbstractClient
+     * @return AbstractClient
+     * @see AbstractClient::$defaultOptions for all config options
      */
-    public static function factory(array $config): ClientInterface
+    public static function factory(array $config): AbstractClient
     {
         $name  = $config['driver'] ?? '';
         $class = self::$drivers[$name] ?? '';
@@ -127,7 +127,7 @@ class Client
      * @param string $method
      * @param array  $args
      *
-     * @return ClientInterface
+     * @return AbstractClient
      */
     public static function __callStatic(string $method, array $args)
     {

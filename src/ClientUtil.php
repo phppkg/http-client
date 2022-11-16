@@ -82,7 +82,6 @@ class ClientUtil
      * @param object|array|string $data body data
      *
      * @return string
-     * @throws \JsonException
      */
     public static function buildBodyByContentType(array &$headers, object|array|string $data): string
     {
