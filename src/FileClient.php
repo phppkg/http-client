@@ -13,7 +13,6 @@ use PhpPkg\Http\Client\Exception\ClientException;
 use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
 use PhpPkg\Http\Client\Traits\StreamContextBuildTrait;
 use Throwable;
-use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function file_get_contents;
 use function function_exists;
@@ -70,7 +69,7 @@ class FileClient extends AbstractClient
 
         try {
             $reqCtx  = $this->buildStreamContext($url, $headers, $options, $data);
-            $fullUrl = UrlHelper::encode2($this->fullUrl);
+            $fullUrl = $this->fullUrl;
 
             // send request
             $this->responseBody = file_get_contents($fullUrl, false, $reqCtx);

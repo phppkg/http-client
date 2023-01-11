@@ -909,7 +909,7 @@ abstract class AbstractClient implements ClientInterface
     }
 
     /**
-     * get JSON body as array data
+     * get JSON body and decode to array data
      *
      * @return array
      */
@@ -939,11 +939,11 @@ abstract class AbstractClient implements ClientInterface
      *
      * @param object $obj
      *
-     * @return void
+     * @return object
      */
-    public function bindBodyTo(object $obj): void
+    public function bindBodyTo(object $obj): object
     {
-        Obj::init($obj, $this->getArrayData());
+        return Obj::init($obj, $this->getArrayData());
     }
 
     /**

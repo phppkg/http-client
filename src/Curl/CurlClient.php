@@ -18,7 +18,6 @@ use PhpPkg\Http\Client\Exception\ClientException;
 use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
 use Toolkit\Stdlib\Arr\ArrayHelper;
 use Toolkit\Stdlib\Helper\Assert;
-use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function curl_close;
 use function curl_errno;
@@ -46,7 +45,6 @@ use function trim;
 use const CURLAUTH_BASIC;
 use const CURLE_COULDNT_CONNECT;
 use const CURLE_COULDNT_RESOLVE_HOST;
-use const CURLE_HTTP_NOT_FOUND;
 use const CURLE_HTTP_POST_ERROR;
 use const CURLE_OPERATION_TIMEOUTED;
 use const CURLE_READ_ERROR;
@@ -118,7 +116,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
     private static array $canRetryErrorCodes = [
         CURLE_COULDNT_RESOLVE_HOST,
         CURLE_COULDNT_CONNECT,
-        CURLE_HTTP_NOT_FOUND,
+        // CURLE_HTTP_NOT_FOUND,
         CURLE_READ_ERROR,
         CURLE_OPERATION_TIMEOUTED,
         CURLE_HTTP_POST_ERROR,
@@ -402,7 +400,7 @@ class CurlClient extends AbstractClient implements CurlClientInterface
         CurlUtil::setMethodToOption($curlOptions, $method);
 
         // set request url
-        $curlOptions[CURLOPT_URL] = UrlHelper::encode2($url);
+        $curlOptions[CURLOPT_URL] = $url;
 
         // append http headers
         if ($headers = array_merge($this->headers, $options['headers'], $headers)) {

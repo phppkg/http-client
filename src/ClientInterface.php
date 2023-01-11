@@ -186,7 +186,7 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface
      * Send request to remote URL
      *
      * @param string            $url
-     * @param array|string|null $data
+     * @param array|string|null $data Body data or query data.
      * @param string            $method
      * @param array             $headers
      * @param array             $options = AbstractClient::$defaultOptions

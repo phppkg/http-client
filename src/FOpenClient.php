@@ -13,7 +13,6 @@ use PhpPkg\Http\Client\Exception\ClientException;
 use PhpPkg\Http\Client\Traits\ParseRawResponseTrait;
 use PhpPkg\Http\Client\Traits\StreamContextBuildTrait;
 use Throwable;
-use Toolkit\Stdlib\Str\UrlHelper;
 use function array_merge;
 use function fclose;
 use function feof;
@@ -101,9 +100,8 @@ class FOpenClient extends AbstractClient
         try {
             $ctx = $this->buildStreamContext($url, $headers, $options, $data);
 
-            $fullUrl = UrlHelper::encode2($this->fullUrl);
             // send request
-            $this->handle = fopen($fullUrl, 'rb', false, $ctx);
+            $this->handle = fopen($this->fullUrl, 'rb', false, $ctx);
         } catch (Throwable $e) {
             throw new ClientException($e->getMessage(), $e->getCode(), $e);
         }
