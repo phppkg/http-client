@@ -8,11 +8,11 @@
 
 An easy-to-use HTTP client library for PHP. Support CURL, file, fsockopen, stream drivers.
 
-- Simple and easy to use HTTP client
-- Support drivers: `curl` `swoole` `fsockopen` `stream` `fopen`
-- Support all HTTP method. eg: `GET,POST,PATCH,PUT,HEAD,DELETE`
-- Support setting proxy, customizing headers, auth, content-type etc.
-- Implement interface [PSR 18](https://github.com/php-fig/http-client) 
+- 简单易于使用的HTTP客户端
+- 可用的驱动包括: `curl` `swoole` `fsockopen` `stream` `fopen`
+- 支持 `GET,POST,PATCH,PUT,HEAD,DELETE` 等请求方法
+- 支持设置代理，自定义headers，auth，content-type 等
+- 实现接口 [PSR 18](https://github.com/php-fig/http-client) 
 
 ## 安装
 
