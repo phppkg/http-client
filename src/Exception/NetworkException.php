@@ -37,8 +37,8 @@ class NetworkException extends RuntimeException implements NetworkExceptionInter
     public function __construct(
         string $message = '',
         int $code = 0,
-        Throwable $previous = null,
-        RequestInterface $request = null
+        ?Throwable $previous = null,
+        ?RequestInterface $request = null
     ) {
         $this->request = $request;
         parent::__construct($message, $code, $previous);

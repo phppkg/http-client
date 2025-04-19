@@ -177,7 +177,7 @@ class CurlMulti // extends CurlLite
      *
      * @return bool|array
      */
-    public function execute(CurlMultiHandle $mh = null): bool|array
+    public function execute(?CurlMultiHandle $mh = null): bool|array
     {
         if (!($mh = $mh ?: $this->mh)) {
             return false;
